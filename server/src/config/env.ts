@@ -20,6 +20,19 @@ export interface AppConfig {
 function validateAndLoadConfig(): AppConfig {
   const nodeEnv = process.env.NODE_ENV || "development";
   const port = parseInt(process.env.PORT || "5000", 10);
+  const databaseUrl = process.env.DATABASE_URL?.trim();
+
+  if (nodeEnv === "production" && !databaseUrl) {
+    throw new Error("FATAL: DATABASE_URL is required in production. Configure Render PostgreSQL before starting the server.");
+  }
+
+  if (nodeEnv === "production" && databaseUrl && !/^postgres(?:ql)?:\/\//i.test(databaseUrl)) {
+    throw new Error("FATAL: DATABASE_URL must be a PostgreSQL connection string in production.");
+  }
+
+  if (nodeEnv === "production" && !process.env.ALLOWED_ORIGINS?.trim()) {
+    throw new Error("FATAL: ALLOWED_ORIGINS is required in production. Set it to the Vercel frontend origin.");
+  }
 
   // JWT Secret validation: Fail-fast if missing or insecure
   let jwtSecret = process.env.JWT_SECRET;
@@ -73,7 +86,7 @@ function validateAndLoadConfig(): AppConfig {
     port,
     nodeEnv,
     jwtSecret,
-    databaseUrl: process.env.DATABASE_URL?.trim(),
+    databaseUrl,
     sarvamApiKey,
     openaiApiKey,
     geminiApiKey,

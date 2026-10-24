@@ -13,7 +13,7 @@ async function startServer() {
   await runMigrations();
 
   const app = createApp();
-  const server = app.listen(config.port, () => {
+  const server = app.listen(config.port, "0.0.0.0", () => {
     console.log(`🚀 [SERVER] Kirova AI API listening at http://localhost:${config.port}`);
     console.log(`📡 [HEALTH] Health check available at http://localhost:${config.port}/health\n`);
   });

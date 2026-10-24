@@ -74,7 +74,7 @@ export function createApp(): express.Application {
   // --- Auth Routes ---
   app.post("/api/auth/login", authCtrl.login);
   app.get("/api/auth/me", requireAuth, authCtrl.getCurrentUser);
-  app.get("/api/auth/demo-accounts", authCtrl.getDemoAccounts);
+  app.get("/api/auth/demo-accounts", requireAuth, authCtrl.getDemoAccounts);
 
   // --- Incident Reporting Routes (PRD Section 10) ---
   app.post("/api/reports", requireAuth, upload.single("audio"), reportsCtrl.createReport);

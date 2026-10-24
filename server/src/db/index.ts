@@ -28,6 +28,9 @@ class DatabaseService {
         this.isEmbeddedPostgres = false;
         console.log("✅ [DATABASE] Connected to external PostgreSQL via Pool.");
       } catch (err: any) {
+        if (config.nodeEnv === "production") {
+          throw new Error(`FATAL: Failed to connect to production PostgreSQL: ${err.message}`);
+        }
         console.warn(`⚠️  [DATABASE] Failed to connect to external PostgreSQL (${err.message}). Falling back to embedded PostgreSQL.`);
         await this.initEmbedded();
       }

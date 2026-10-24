@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { LandingPage } from './pages/LandingPage';
 
 // ── API Configuration ─────────────────────────────────────────
-const API_BASE = 'http://localhost:5000';
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '');
 
 async function apiRequest(path: string, options: RequestInit = {}, token?: string) {
   const headers: Record<string, string> = {
@@ -234,11 +234,6 @@ function LoginPage({ onBackToLanding }: { onBackToLanding?: () => void }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [demoAccounts, setDemoAccounts] = useState<any[]>([]);
-
-  useEffect(() => {
-    apiRequest('/api/auth/demo-accounts').then(d => setDemoAccounts(d.accounts || [])).catch(() => {});
-  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -250,28 +245,6 @@ function LoginPage({ onBackToLanding }: { onBackToLanding?: () => void }) {
     } finally {
       setLoading(false);
     }
-  };
-
-  const fillAndLogin = async (acc: any) => {
-    let pwd = 'Worker@123';
-    if (acc.role === 'SUPERVISOR') pwd = 'Supervisor@123';
-    else if (acc.email.startsWith('tech.')) pwd = 'Tech@123';
-    setEmail(acc.email);
-    setPassword(pwd);
-    setLoading(true);
-    try {
-      await login(acc.email, pwd);
-      addToast({ type: 'success', title: 'Signed in', message: `Welcome, ${acc.name}` });
-    } catch (err: any) {
-      addToast({ type: 'error', title: 'Login failed', message: err.message });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const roleLabel = (role: string) => {
-    if (role === 'SUPERVISOR') return '🔵 Supervisor';
-    return '🟢 Technician / Reporter';
   };
 
   return (
@@ -328,23 +301,6 @@ function LoginPage({ onBackToLanding }: { onBackToLanding?: () => void }) {
           </button>
         </form>
 
-        {demoAccounts.length > 0 && (
-          <div className="login-demo-section">
-            <div className="login-demo-title">Quick 1-Click Demo Access</div>
-            <div className="demo-accounts">
-              {demoAccounts.slice(0, 5).map(acc => (
-                <button key={acc.id} type="button" className="demo-account-btn" onClick={() => fillAndLogin(acc)} disabled={loading}>
-                  <div>
-                    <div className="demo-account-name">{acc.name}</div>
-                    <div className="demo-account-email">{acc.email}</div>
-                  </div>
-                  <span className="badge badge-draft text-xs">{roleLabel(acc.role)}</span>
-                </button>
-              ))}
-            </div>
-            <p className="text-xs text-muted text-center mt-4">Click any demo account above for instant 1-click access.</p>
-          </div>
-        )}
       </div>
     </div>
   );
