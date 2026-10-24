@@ -40,8 +40,8 @@ COPY --from=builder /app/server/dist ./server/dist
 # Copy compiled React client (Express serves it as static files)
 COPY --from=builder /app/client/dist ./client/dist
 
-# Copy DB migration SQL (needed at runtime)
-COPY server/src/db/schema.sql ./server/src/db/schema.sql
+# Copy DB migration SQL beside the compiled migration module
+COPY server/src/db/schema.sql ./server/dist/db/schema.sql
 
 # Expose API port
 EXPOSE 5000
