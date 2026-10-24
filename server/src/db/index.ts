@@ -1,8 +1,13 @@
 import { Pool } from "pg";
-import { PGlite } from "@electric-sql/pglite";
 import path from "path";
 import fs from "fs";
 import { config } from "../config/env";
+
+interface EmbeddedDatabase {
+  query<T>(text: string, params: any[]): Promise<{ rows: T[] }>;
+  exec(sql: string): Promise<unknown>;
+  close(): Promise<void>;
+}
 
 export interface QueryResult<T = any> {
   rows: T[];
@@ -11,7 +16,7 @@ export interface QueryResult<T = any> {
 
 class DatabaseService {
   private pool: Pool | null = null;
-  private pglite: PGlite | null = null;
+  private pglite: EmbeddedDatabase | null = null;
   private isConnected = false;
   public isEmbeddedPostgres = false;
 
@@ -46,7 +51,8 @@ class DatabaseService {
     if (!fs.existsSync(dataDir)) {
       fs.mkdirSync(dataDir, { recursive: true });
     }
-    this.pglite = new PGlite(dataDir);
+    const { PGlite: PGliteConstructor } = await import("@electric-sql/pglite");
+    this.pglite = new PGliteConstructor(dataDir);
     this.isEmbeddedPostgres = true;
     console.log(`✅ [DATABASE] Initialized embedded PostgreSQL (PGlite) with persistence at: ${dataDir}`);
   }
