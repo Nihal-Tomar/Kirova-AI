@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { LandingPage } from './pages/LandingPage';
+import { GoogleSignInButton } from './components/GoogleSignInButton';
 
 // ── API Configuration ─────────────────────────────────────────
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '');
@@ -48,8 +49,9 @@ interface AuthState {
 const AuthContext = createContext<{
   auth: AuthState;
   login: (email: string, password: string) => Promise<void>;
+  googleLogin: (credential: string) => Promise<void>;
   logout: () => void;
-}>({ auth: { user: null, token: null }, login: async () => {}, logout: () => {} });
+}>({ auth: { user: null, token: null }, login: async () => {}, googleLogin: async () => {}, logout: () => {} });
 
 // ── Toast Context ─────────────────────────────────────────────
 interface Toast { id: string; type: 'success' | 'error' | 'warning' | 'info'; title: string; message?: string; }
@@ -229,7 +231,7 @@ function EvidencePanel({ evidence }: { evidence: any[] }) {
 
 // ── Login Page ────────────────────────────────────────────────
 function LoginPage({ onBackToLanding }: { onBackToLanding?: () => void }) {
-  const { login } = useAuth();
+  const { login, googleLogin } = useAuth();
   const { addToast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -242,6 +244,17 @@ function LoginPage({ onBackToLanding }: { onBackToLanding?: () => void }) {
       await login(email, password);
     } catch (err: any) {
       addToast({ type: 'error', title: 'Login failed', message: err.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleCredential = async (credential: string) => {
+    setLoading(true);
+    try {
+      await googleLogin(credential);
+    } catch (err: any) {
+      addToast({ type: 'error', title: 'Google Sign-In failed', message: err.message });
     } finally {
       setLoading(false);
     }
@@ -286,6 +299,26 @@ function LoginPage({ onBackToLanding }: { onBackToLanding?: () => void }) {
           <h1 className="login-title">Kirova AI</h1>
           <p className="login-subtitle">From Voice to Verified Action</p>
         </div>
+
+        {/* Google Sign-In button — only rendered when VITE_GOOGLE_CLIENT_ID is set */}
+        <GoogleSignInButton onCredential={handleGoogleCredential} disabled={loading} />
+
+        {/* Divider — only shown when Google button is visible */}
+        {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            margin: '20px 0 4px',
+            color: '#475569',
+            fontSize: '0.75rem',
+            fontWeight: 500,
+          }}>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
+            <span>or sign in with email</span>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
+          </div>
+        )}
 
         <form onSubmit={handleLogin}>
           <div className="form-group">
@@ -1617,6 +1650,16 @@ export default function App() {
     navigateTo('app');
   }, []);
 
+  // Google Sign-In: POSTs the Google ID token to the backend for server-side
+  // verification. The backend issues a Kirova JWT — identical flow to password login.
+  const googleLogin = useCallback(async (credential: string) => {
+    const data = await apiRequest('/api/auth/google', { method: 'POST', body: JSON.stringify({ credential }) });
+    localStorage.setItem('ks_token', data.token);
+    localStorage.setItem('ks_user', JSON.stringify(data.user));
+    setAuth({ token: data.token, user: data.user });
+    navigateTo('app');
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem('ks_token');
     localStorage.removeItem('ks_user');
@@ -1658,7 +1701,7 @@ export default function App() {
   };
 
   return (
-    <AuthContext.Provider value={{ auth, login, logout }}>
+    <AuthContext.Provider value={{ auth, login, googleLogin, logout }}>
       <ToastProvider>
         {renderScreen()}
       </ToastProvider>

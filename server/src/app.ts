@@ -7,6 +7,7 @@ import fs from "fs";
 
 import { requireAuth, requireRole } from "./middleware/auth";
 import * as authCtrl from "./controllers/auth";
+import * as googleAuthCtrl from "./controllers/googleAuth";
 import * as reportsCtrl from "./controllers/reports";
 import * as workOrdersCtrl from "./controllers/work_orders";
 import * as intelCtrl from "./controllers/intelligence";
@@ -73,6 +74,7 @@ export function createApp(): express.Application {
 
   // --- Auth Routes ---
   app.post("/api/auth/login", authCtrl.login);
+  app.post("/api/auth/google", googleAuthCtrl.googleSignIn);
   app.get("/api/auth/me", requireAuth, authCtrl.getCurrentUser);
   app.get("/api/auth/demo-accounts", requireAuth, authCtrl.getDemoAccounts);
 

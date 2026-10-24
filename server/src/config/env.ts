@@ -13,6 +13,7 @@ export interface AppConfig {
   sarvamApiKey?: string;
   openaiApiKey?: string;
   geminiApiKey?: string;
+  googleClientId?: string;
   isMockStt: boolean;
   isMockLlm: boolean;
 }
@@ -66,6 +67,13 @@ function validateAndLoadConfig(): AppConfig {
   const sarvamApiKey = process.env.SARVAM_API_KEY?.trim();
   const openaiApiKey = process.env.OPENAI_API_KEY?.trim();
   const geminiApiKey = process.env.GEMINI_API_KEY?.trim();
+  const googleClientId = process.env.GOOGLE_CLIENT_ID?.trim();
+
+  if (!googleClientId) {
+    console.warn("⚠️  [AUTH] GOOGLE_CLIENT_ID not set. Google Sign-In will be disabled.");
+  } else {
+    console.info("✅ [AUTH] Google Sign-In configured.");
+  }
 
   const isMockStt = !sarvamApiKey;
   const isMockLlm = !openaiApiKey && !geminiApiKey;
@@ -90,6 +98,7 @@ function validateAndLoadConfig(): AppConfig {
     sarvamApiKey,
     openaiApiKey,
     geminiApiKey,
+    googleClientId,
     isMockStt,
     isMockLlm
   };
