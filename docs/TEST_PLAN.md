@@ -1,4 +1,4 @@
-# KaaryaSetu AI — Verification, Testing & Evaluation Plan
+﻿# Kirova AI — Verification, Testing & Evaluation Plan
 
 **Document Version:** 2.0 (Reconciled with PRD v2.0)  
 **Target Event:** HackFront India 2026  
@@ -8,7 +8,7 @@
 
 ## 1. Testing Strategy Overview
 
-The testing framework for KaaryaSetu AI covers three distinct tiers:
+The testing framework for Kirova AI covers three distinct tiers:
 1. **Deterministic Software Verification:** Unit, Integration, State Machine, and Security/RBAC tests ensuring strict backend enforcement of business rules and immutable auditability.
 2. **AI Extraction & Provenance Benchmarking:** A quantitatively evaluated 30-case synthetic dataset testing multilingual extraction accuracy, ambiguity detection, and zero-hallucination guardrails.
 3. **End-to-End Workflow & Demo Validation:** Full lifecycle test running the complete thread from speech ingestion to supervisor-verified closure.
@@ -17,7 +17,7 @@ The testing framework for KaaryaSetu AI covers three distinct tiers:
 
 ## 2. Quantitative AI Evaluation Framework (30-Case Benchmark)
 
-Unlike conventional demos that merely present a single successful prompt, KaaryaSetu AI measures extraction reliability using an automated evaluation script (`tests/evaluation/run_benchmark.ts`) running against 30 labelled test reports (`data/evaluation_30_reports.json`).
+Unlike conventional demos that merely present a single successful prompt, Kirova AI measures extraction reliability using an automated evaluation script (`tests/evaluation/run_benchmark.ts`) running against 30 labelled test reports (`data/evaluation_30_reports.json`).
 
 > [!IMPORTANT]
 > **Zero Fabrication Rule:** No evaluation scores or benchmark numbers are fabricated in this specification. All final percentages are computed programmatically by running the benchmark suite against the ground-truth dataset during Phase 7 testing.

@@ -38,14 +38,37 @@ export function createApp(): express.Application {
 
   // Global Middleware
   app.use(helmet({ contentSecurityPolicy: false }));
-  app.use(cors());
+
+  // CORS — restrict to allowlist in production
+  const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
+    : ["http://localhost:5173", "http://localhost:4173"];
+
+  app.use(cors({
+    origin: (origin, callback) => {
+      // Allow same-origin requests (no origin header) and whitelisted origins
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS: Origin ${origin} not allowed`));
+      }
+    },
+    credentials: true,
+  }));
+
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use("/uploads", express.static(uploadsDir));
 
+  // Serve React production build (when deployed as single process)
+  const clientDist = path.resolve(__dirname, "../../client/dist");
+  if (fs.existsSync(clientDist)) {
+    app.use(express.static(clientDist));
+  }
+
   // Health check
   app.get("/health", (_req, res) => {
-    res.json({ status: "healthy", service: "kaaryasetu-api", timestamp: new Date().toISOString() });
+    res.json({ status: "healthy", service: "kirova-api", timestamp: new Date().toISOString() });
   });
 
   // --- Auth Routes ---
@@ -83,6 +106,13 @@ export function createApp(): express.Application {
 
   // --- Quantitative Evaluation Benchmark Route ---
   app.post("/api/evaluation/run", requireAuth, evalCtrl.runEvaluation);
+
+  // SPA catch-all — serve React's index.html for any non-API route (production)
+  if (fs.existsSync(clientDist)) {
+    app.get("*", (_req, res) => {
+      res.sendFile(path.join(clientDist, "index.html"));
+    });
+  }
 
   // Global Error Handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

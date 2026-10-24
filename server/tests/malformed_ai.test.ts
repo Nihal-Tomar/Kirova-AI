@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+﻿import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import { createApp } from "../src/app";
 import { ensureDbSeeded } from "./setup";
@@ -14,12 +14,8 @@ describe("Malformed AI & Transcript Preservation Test Suite", () => {
 
     const techLogin = await request(app)
       .post("/api/auth/login")
-      .send({ email: "tech.rajesh@kaaryasetu.ai", password: "Tech@123" });
+      .send({ email: "tech.rajesh@kirova.ai", password: "Tech@123" });
     techToken = techLogin.body.token;
-  });
-
-  afterAll(async () => {
-    await db.close();
   });
 
   it("5.1 should preserve original transcript when user edits corrected transcript", async () => {

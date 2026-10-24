@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 40" fill="none">
+  <!-- Monogram Glyph -->
+  <rect x="2" y="4" width="32" height="32" rx="8" fill="#111329" />
+  <path d="M12 12V28" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" />
+  <path d="M24 13L16.5 20L24.5 28" stroke="#55E7B0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+  <circle cx="16.5" cy="20" r="1.8" fill="#D9CCFF" />
+
+  <!-- Typography -->
+  <text x="44" y="27" font-family="'DM Sans', -apple-system, sans-serif" font-weight="700" font-size="20" letter-spacing="-0.03em" fill="#24212A">kirova</text>
+  <text x="110" y="27" font-family="'DM Sans', -apple-system, sans-serif" font-weight="500" font-size="20" letter-spacing="-0.03em" fill="#706D75">AI</text>
+  <circle cx="138" cy="23" r="3" fill="#55E7B0" />
+</svg>

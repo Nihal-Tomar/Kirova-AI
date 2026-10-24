@@ -1,7 +1,7 @@
 {
-  "name": "kaaryasetu-ai",
+  "name": "kirova-ai",
   "version": "2.0.0",
-  "description": "KaaryaSetu AI — From Voice to Verified Action",
+  "description": "Kirova AI — From Voice to Verified Action",
   "workspaces": [
     "server",
     "client"

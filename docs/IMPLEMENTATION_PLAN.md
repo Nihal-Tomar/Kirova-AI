@@ -1,4 +1,4 @@
-# KaaryaSetu AI — 8-Day Implementation Plan & MVP Roadmap
+﻿# Kirova AI — 8-Day Implementation Plan & MVP Roadmap
 
 **Document Version:** 2.0 (Reconciled with PRD v2.0)  
 **Target Event:** HackFront India 2026 (23–31 October 2026)  

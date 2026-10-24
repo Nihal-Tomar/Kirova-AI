@@ -39,7 +39,7 @@ function validateAndLoadConfig(): AppConfig {
       );
     }
     // Safe auto-generated development secret for local reproducibility
-    jwtSecret = "kaaryasetu_dev_secret_key_generated_minimum_32_chars_ok!";
+    jwtSecret = "kirova_dev_secret_key_generated_minimum_32_chars_ok!";
     console.warn("⚠️  [SECURITY WARNING] JWT_SECRET not set. Using secure development fallback. Set JWT_SECRET in .env for production.");
   } else if (jwtSecret.length < 32 || insecurePlaceholders.includes(jwtSecret.toLowerCase())) {
     if (nodeEnv === "production") {

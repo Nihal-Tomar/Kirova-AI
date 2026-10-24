@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { LandingPage } from './pages/LandingPage';
 
 // ── API Configuration ─────────────────────────────────────────
 const API_BASE = 'http://localhost:5000';
@@ -227,7 +228,7 @@ function EvidencePanel({ evidence }: { evidence: any[] }) {
 }
 
 // ── Login Page ────────────────────────────────────────────────
-function LoginPage() {
+function LoginPage({ onBackToLanding }: { onBackToLanding?: () => void }) {
   const { login } = useAuth();
   const { addToast } = useToast();
   const [email, setEmail] = useState('');
@@ -251,9 +252,21 @@ function LoginPage() {
     }
   };
 
-  const fillDemo = (acc: any) => {
+  const fillAndLogin = async (acc: any) => {
+    let pwd = 'Worker@123';
+    if (acc.role === 'SUPERVISOR') pwd = 'Supervisor@123';
+    else if (acc.email.startsWith('tech.')) pwd = 'Tech@123';
     setEmail(acc.email);
-    setPassword('password123');
+    setPassword(pwd);
+    setLoading(true);
+    try {
+      await login(acc.email, pwd);
+      addToast({ type: 'success', title: 'Signed in', message: `Welcome, ${acc.name}` });
+    } catch (err: any) {
+      addToast({ type: 'error', title: 'Login failed', message: err.message });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const roleLabel = (role: string) => {
@@ -266,9 +279,38 @@ function LoginPage() {
       <div className="login-bg-glow" />
       <div className="login-bg-grid" />
       <div className="login-card">
+        {onBackToLanding && (
+          <div style={{ marginBottom: '16px' }}>
+            <button
+              type="button"
+              onClick={onBackToLanding}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#94a3b8',
+                cursor: 'pointer',
+                fontSize: '0.8125rem',
+                fontWeight: 500,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '0',
+              }}
+            >
+              ← Back to Homepage
+            </button>
+          </div>
+        )}
         <div className="login-header">
-          <div className="login-logo">⚙️</div>
-          <h1 className="login-title">KaaryaSetu AI</h1>
+          <div className="login-logo">
+            <svg width="28" height="28" viewBox="0 0 48 48" fill="none">
+              <rect width="48" height="48" rx="10" fill="#111329" />
+              <path d="M14 11V37" stroke="#FFFFFF" strokeWidth="4.5" strokeLinecap="round" />
+              <path d="M33 13L21 24L34 37" stroke="#55E7B0" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx="21" cy="24" r="2.5" fill="#D9CCFF" />
+            </svg>
+          </div>
+          <h1 className="login-title">Kirova AI</h1>
           <p className="login-subtitle">From Voice to Verified Action</p>
         </div>
 
@@ -288,10 +330,10 @@ function LoginPage() {
 
         {demoAccounts.length > 0 && (
           <div className="login-demo-section">
-            <div className="login-demo-title">Quick Demo Access</div>
+            <div className="login-demo-title">Quick 1-Click Demo Access</div>
             <div className="demo-accounts">
               {demoAccounts.slice(0, 5).map(acc => (
-                <button key={acc.id} className="demo-account-btn" onClick={() => fillDemo(acc)}>
+                <button key={acc.id} type="button" className="demo-account-btn" onClick={() => fillAndLogin(acc)} disabled={loading}>
                   <div>
                     <div className="demo-account-name">{acc.name}</div>
                     <div className="demo-account-email">{acc.email}</div>
@@ -300,7 +342,7 @@ function LoginPage() {
                 </button>
               ))}
             </div>
-            <p className="text-xs text-muted text-center mt-4">Click any account above, then Sign In. Password: <code style={{ color: 'var(--brand-primary-light)' }}>password123</code></p>
+            <p className="text-xs text-muted text-center mt-4">Click any demo account above for instant 1-click access.</p>
           </div>
         )}
       </div>
@@ -309,7 +351,7 @@ function LoginPage() {
 }
 
 // ── Sidebar Navigation ────────────────────────────────────────
-function Sidebar({ view, setView }: { view: string; setView: (v: string) => void }) {
+function Sidebar({ view, setView, onExitToLanding }: { view: string; setView: (v: string) => void; onExitToLanding?: () => void }) {
   const { auth, logout } = useAuth();
   const user = auth.user!;
   const isSupervisor = user.role === 'SUPERVISOR';
@@ -345,9 +387,15 @@ function Sidebar({ view, setView }: { view: string; setView: (v: string) => void
   return (
     <nav className="sidebar">
       <div className="sidebar-logo">
-        <div className="sidebar-logo-icon">⚙️</div>
+        <div className="sidebar-logo-icon" style={{ background: '#111329', padding: '6px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
+            <path d="M14 11V37" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" />
+            <path d="M33 13L21 24L34 37" stroke="#55E7B0" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx="21" cy="24" r="3" fill="#D9CCFF" />
+          </svg>
+        </div>
         <div className="sidebar-logo-text">
-          <span className="sidebar-logo-name">KaaryaSetu AI</span>
+          <span className="sidebar-logo-name">Kirova AI</span>
           <span className="sidebar-logo-tagline">Voice → Verified Action</span>
         </div>
       </div>
@@ -360,6 +408,18 @@ function Sidebar({ view, setView }: { view: string; setView: (v: string) => void
             {item.label}
           </button>
         ))}
+        {onExitToLanding && (
+          <button
+            type="button"
+            className="nav-item"
+            style={{ marginTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '12px' }}
+            onClick={onExitToLanding}
+            title="Return to Public Homepage"
+          >
+            <span className="nav-item-icon">🌐</span>
+            Public Website
+          </button>
+        )}
       </div>
 
       <div className="sidebar-user">
@@ -879,7 +939,6 @@ function IncidentsView() {
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('');
   const [selected, setSelected] = useState<any>(null);
-  const [creating, setCreating] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
   const [priority, setPriority] = useState('MEDIUM');
 
@@ -893,7 +952,7 @@ function IncidentsView() {
   const openDetail = async (id: string) => {
     try {
       const d = await apiRequest(`/api/reports/${id}`, {}, auth.token!);
-      setSelected(d); setCreating(false);
+      setSelected(d);
     } catch (e: any) { addToast({ type: 'error', title: e.message }); }
   };
 
@@ -1067,8 +1126,6 @@ function WorkOrdersView() {
   };
 
   if (loading) return <div className="loading-overlay"><Spinner /></div>;
-
-  const statusOptions = ['', 'AWAITING_APPROVAL', 'APPROVED', 'ASSIGNED', 'IN_PROGRESS', 'RESOLVED', 'VERIFIED_CLOSED', 'REJECTED'];
 
   return (
     <div>
@@ -1484,11 +1541,11 @@ function AuditLogsView() {
 }
 
 // ── Main App ──────────────────────────────────────────────────
-function AppContent() {
+function AppContent({ onExitToLanding }: { onExitToLanding?: () => void }) {
   const { auth } = useAuth();
   const [view, setView] = useState('dashboard');
 
-  if (!auth.user) return <LoginPage />;
+  if (!auth.user) return <LoginPage onBackToLanding={onExitToLanding} />;
 
   const isSupervisor = auth.user.role === 'SUPERVISOR';
 
@@ -1503,7 +1560,7 @@ function AppContent() {
       intelligence: ['🧠 Intelligence', 'Recurring faults & machine registry'],
       audit: ['🔒 Audit Logs', 'Immutable system action history'],
     };
-    return titles[view] || ['KaaryaSetu AI', ''];
+    return titles[view] || ['Kirova AI', ''];
   };
 
   const [pageTitle, pageSubtitle] = getTitle();
@@ -1524,7 +1581,7 @@ function AppContent() {
 
   return (
     <div className="app-shell">
-      <Sidebar view={view} setView={setView} />
+      <Sidebar view={view} setView={setView} onExitToLanding={onExitToLanding} />
       <main className="main-content">
         <div className="page-header">
           <div>
@@ -1532,6 +1589,16 @@ function AppContent() {
             {pageSubtitle && <div className="page-subtitle">{pageSubtitle}</div>}
           </div>
           <div className="flex gap-3 items-center">
+            {onExitToLanding && (
+              <button
+                type="button"
+                onClick={onExitToLanding}
+                className="btn btn-secondary btn-sm"
+                title="View Public Landing Page"
+              >
+                🌐 Public Website
+              </button>
+            )}
             <span className={`badge ${auth.user.role === 'SUPERVISOR' ? 'badge-approved' : 'badge-assigned'}`}>
               {auth.user.role === 'SUPERVISOR' ? '🔵 Supervisor' : '🟢 Technician'}
             </span>
@@ -1545,7 +1612,7 @@ function AppContent() {
   );
 }
 
-// ── Root App with Providers ───────────────────────────────────
+// ── Root App with Providers & Public Route System ─────────────
 export default function App() {
   const [auth, setAuth] = useState<AuthState>(() => {
     try {
@@ -1556,23 +1623,88 @@ export default function App() {
     return { token: null, user: null };
   });
 
+  const getInitialRoute = (): 'landing' | 'login' | 'app' => {
+    const path = window.location.pathname;
+    const hash = window.location.hash;
+    if (path === '/login' || hash === '#login') return 'login';
+    if (path === '/app' || hash === '#app' || path.startsWith('/incidents') || path.startsWith('/workorders')) {
+      return 'app';
+    }
+    // Visiting '/' displays the public landing page!
+    return 'landing';
+  };
+
+  const [currentRoute, setCurrentRoute] = useState<'landing' | 'login' | 'app'>(getInitialRoute);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentRoute(getInitialRoute());
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const navigateTo = (route: 'landing' | 'login' | 'app') => {
+    setCurrentRoute(route);
+    const targetPath = route === 'landing' ? '/' : route === 'login' ? '/login' : '/app';
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState({}, '', targetPath);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const login = useCallback(async (email: string, password: string) => {
     const data = await apiRequest('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
     localStorage.setItem('ks_token', data.token);
     localStorage.setItem('ks_user', JSON.stringify(data.user));
     setAuth({ token: data.token, user: data.user });
+    navigateTo('app');
   }, []);
 
   const logout = useCallback(() => {
     localStorage.removeItem('ks_token');
     localStorage.removeItem('ks_user');
     setAuth({ token: null, user: null });
+    navigateTo('landing');
   }, []);
+
+  const renderScreen = () => {
+    if (currentRoute === 'landing') {
+      return (
+        <LandingPage
+          onLaunchStudio={() => {
+            if (auth.user) {
+              navigateTo('app');
+            } else {
+              navigateTo('login');
+            }
+          }}
+          onSignIn={() => navigateTo('login')}
+          onSignUp={() => navigateTo('login')}
+          isAuthenticated={!!auth.user}
+          userName={auth.user?.name}
+        />
+      );
+    }
+
+    if (currentRoute === 'login') {
+      if (auth.user) {
+        return <AppContent onExitToLanding={() => navigateTo('landing')} />;
+      }
+      return <LoginPage onBackToLanding={() => navigateTo('landing')} />;
+    }
+
+    // Studio workspace route
+    if (!auth.user) {
+      return <LoginPage onBackToLanding={() => navigateTo('landing')} />;
+    }
+    return <AppContent onExitToLanding={() => navigateTo('landing')} />;
+  };
 
   return (
     <AuthContext.Provider value={{ auth, login, logout }}>
       <ToastProvider>
-        <AppContent />
+        {renderScreen()}
       </ToastProvider>
     </AuthContext.Provider>
   );

@@ -62,10 +62,10 @@ export async function seedDatabase(): Promise<void> {
      ($13, $14, $15, $16, $17, $18),
      ($19, $20, $21, $22, $23, $24)`,
     [
-      supId, orgId, "Priya Sharma (Supervisor)", "supervisor@kaaryasetu.ai", passwordSup, "SUPERVISOR",
-      tech1Id, orgId, "Rajesh Kumar (Technician)", "tech.rajesh@kaaryasetu.ai", passwordTech, "REPORTER_TECHNICIAN",
-      tech2Id, orgId, "Vikram Singh (Technician)", "tech.vikram@kaaryasetu.ai", passwordTech, "REPORTER_TECHNICIAN",
-      workerId, orgId, "Amit Verma (Line Operator)", "worker.amit@kaaryasetu.ai", passwordWorker, "REPORTER_TECHNICIAN"
+      supId, orgId, "Priya Sharma (Supervisor)", "supervisor@kirova.ai", passwordSup, "SUPERVISOR",
+      tech1Id, orgId, "Rajesh Kumar (Technician)", "tech.rajesh@kirova.ai", passwordTech, "REPORTER_TECHNICIAN",
+      tech2Id, orgId, "Vikram Singh (Technician)", "tech.vikram@kirova.ai", passwordTech, "REPORTER_TECHNICIAN",
+      workerId, orgId, "Amit Verma (Line Operator)", "worker.amit@kirova.ai", passwordWorker, "REPORTER_TECHNICIAN"
     ]
   );
 

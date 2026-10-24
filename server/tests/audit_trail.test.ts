@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+﻿import { describe, it, expect, beforeAll } from "vitest";
 import request from "supertest";
 import { createApp } from "../src/app";
 import { ensureDbSeeded } from "./setup";
+import { db } from "../src/db";
 
 const app = createApp();
 
@@ -13,12 +14,8 @@ describe("Audit Trail Immutability & Defense-in-Depth Test Suite", () => {
 
     const supLogin = await request(app)
       .post("/api/auth/login")
-      .send({ email: "supervisor@kaaryasetu.ai", password: "Supervisor@123" });
+      .send({ email: "supervisor@kirova.ai", password: "Supervisor@123" });
     supToken = supLogin.body.token;
-  });
-
-  afterAll(async () => {
-    await db.close();
   });
 
   it("4.1 should allow supervisor to query audit logs", async () => {

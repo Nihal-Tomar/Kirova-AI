@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+﻿import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import { createApp } from "../src/app";
 import { ensureDbSeeded } from "./setup";
@@ -16,12 +16,12 @@ describe("Workflow Lifecycle & State Machine Test Suite", () => {
 
     const supLogin = await request(app)
       .post("/api/auth/login")
-      .send({ email: "supervisor@kaaryasetu.ai", password: "Supervisor@123" });
+      .send({ email: "supervisor@kirova.ai", password: "Supervisor@123" });
     supToken = supLogin.body.token;
 
     const techLogin = await request(app)
       .post("/api/auth/login")
-      .send({ email: "tech.rajesh@kaaryasetu.ai", password: "Tech@123" });
+      .send({ email: "tech.rajesh@kirova.ai", password: "Tech@123" });
     techToken = techLogin.body.token;
 
     // Create an incident with unambiguous machine (MCH-001)
@@ -35,10 +35,6 @@ describe("Workflow Lifecycle & State Machine Test Suite", () => {
     await request(app)
       .post(`/api/reports/${incidentId}/extract`)
       .set("Authorization", `Bearer ${techToken}`);
-  });
-
-  afterAll(async () => {
-    await db.close();
   });
 
   it("2.1 should create a work order in AWAITING_APPROVAL status", async () => {

@@ -1,4 +1,4 @@
-# KaaryaSetu AI
+﻿# Kirova AI
 ## Product Requirements Document (PRD)
 
 **Product tagline:** From Voice to Verified Action
@@ -14,11 +14,11 @@
 
 # 1. Executive Summary
 
-KaaryaSetu AI is a multilingual, AI-assisted industrial maintenance platform that transforms informal machine-failure reports into structured, traceable, and human-approved work orders.
+Kirova AI is a multilingual, AI-assisted industrial maintenance platform that transforms informal machine-failure reports into structured, traceable, and human-approved work orders.
 
 In small factories, workshops, college laboratories, and industrial facilities, maintenance issues are often communicated through verbal instructions, phone calls, messaging applications, or handwritten notes. Critical details get lost, repeated failures are recorded independently, and supervisors lack a reliable way to determine what was reported, what the system retrieved from historical records, and what the AI merely suggested.
 
-KaaryaSetu AI addresses this problem through a unified workflow:
+Kirova AI addresses this problem through a unified workflow:
 
 **Voice/Text Report → Transcription → Structured Extraction → Validation → Historical Retrieval → Human Approval → Technician Execution → Evidence Submission → Verified Closure.**
 
@@ -26,7 +26,7 @@ The platform supports Hindi, Hinglish, and English reporting, subject to testing
 
 Its defining principle is **evidence before confidence**. Every important field is labelled according to its source, missing or ambiguous information triggers clarification, historical recommendations are grounded in stored records, and only authorized human users can approve and verify work.
 
-Unlike a standalone AI chatbot, KaaryaSetu AI connects language intelligence to a complete maintenance workflow.
+Unlike a standalone AI chatbot, Kirova AI connects language intelligence to a complete maintenance workflow.
 
 ## 1.1 Product vision
 
@@ -38,7 +38,7 @@ Reduce information loss and coordination overhead while making maintenance decis
 
 ## 1.3 One-line product proposition
 
-KaaryaSetu AI turns a spoken maintenance complaint into an evidence-labelled, human-approved work order, asks for missing information instead of guessing, and uses verified maintenance history to reveal recurring faults across machines.
+Kirova AI turns a spoken maintenance complaint into an evidence-labelled, human-approved work order, asks for missing information instead of guessing, and uses verified maintenance history to reveal recurring faults across machines.
 
 ---
 
@@ -109,7 +109,7 @@ A successful demonstration must also include at least one failure case in which 
 
 # 4. Product Differentiation
 
-KaaryaSetu AI must not claim that voice reporting, AI extraction, or maintenance ticketing is individually novel. Its differentiation lies in how these capabilities are combined and validated.
+Kirova AI must not claim that voice reporting, AI extraction, or maintenance ticketing is individually novel. Its differentiation lies in how these capabilities are combined and validated.
 
 ## 4.1 Evidence-labelled intelligence
 
@@ -149,7 +149,7 @@ The interface must distinguish a historical association from proof that the same
 
 ## 4.4 Closed-loop accountability
 
-KaaryaSetu AI follows work beyond initial report generation.
+Kirova AI follows work beyond initial report generation.
 
 Every work order has a responsible technician, a recorded status history, resolution notes, and a supervisor verification decision.
 
@@ -600,7 +600,7 @@ Request and response schemas should be documented in the project README or an Op
 
 # 11. Evaluation and Testing Strategy
 
-A core differentiator of KaaryaSetu AI is that it measures whether the AI is correct rather than merely demonstrating that an AI response can be generated.
+A core differentiator of Kirova AI is that it measures whether the AI is correct rather than merely demonstrating that an AI response can be generated.
 
 ## 11.1 Evaluation dataset
 
@@ -874,7 +874,7 @@ These stages should be pursued only after the core workflow demonstrates usabili
 
 # 19. Final Product Definition
 
-KaaryaSetu AI is an evidence-first, multilingual industrial maintenance platform that converts informal reports into structured incidents, connects them to real equipment and historical records, and moves approved work through accountable execution and supervisor-verified closure.
+Kirova AI is an evidence-first, multilingual industrial maintenance platform that converts informal reports into structured incidents, connects them to real equipment and historical records, and moves approved work through accountable execution and supervisor-verified closure.
 
 Its differentiator is not that AI can write a maintenance summary. It is that the system can distinguish reported facts from retrieved evidence and unverified suggestions, ask for clarification when necessary, and preserve a complete record of the human decisions that turn a complaint into a verified outcome.
 

@@ -3,7 +3,7 @@ import { db } from "../db/index";
 
 async function main() {
   console.log("================================================================================");
-  console.log("          KAARYASETU AI — 30-REPORT QUANTITATIVE BENCHMARK RUNNER               ");
+  console.log("             KIROVA AI — 30-REPORT QUANTITATIVE BENCHMARK RUNNER               ");
   console.log("================================================================================\n");
 
   await db.init();

@@ -1,4 +1,4 @@
-# KaaryaSetu AI — System Architecture Specification
+﻿# Kirova AI — System Architecture Specification
 
 **Document Version:** 2.0 (Reconciled with PRD v2.0)  
 **Status:** Approved Architecture Blueprint  
@@ -9,7 +9,7 @@
 
 ## 1. Architectural Philosophy and System Principles
 
-KaaryaSetu AI is an industrial maintenance platform designed around three non-negotiable operational principles:
+Kirova AI is an industrial maintenance platform designed around three non-negotiable operational principles:
 
 1. **Evidence Before Confidence:**  
    Every piece of data presented to human supervisors carries an explicit provenance label:

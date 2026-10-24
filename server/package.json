@@ -1,7 +1,7 @@
 {
-  "name": "kaaryasetu-server",
+  "name": "kirova-server",
   "version": "1.0.0",
-  "description": "KaaryaSetu AI Backend Server",
+  "description": "Kirova AI Backend Server",
   "main": "src/index.ts",
   "scripts": {
     "dev": "tsx watch src/index.ts",

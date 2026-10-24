@@ -5,7 +5,7 @@ import { runMigrations } from "./db/migrate";
 
 async function startServer() {
   console.log("================================================================================");
-  console.log("               KAARYASETU AI — BACKEND APPLICATION SERVER                      ");
+  console.log("                 KIROVA AI — BACKEND APPLICATION SERVER                         ");
   console.log("               Product Vision: 'From Voice to Verified Action'                  ");
   console.log("================================================================================\n");
 
@@ -14,7 +14,7 @@ async function startServer() {
 
   const app = createApp();
   const server = app.listen(config.port, () => {
-    console.log(`🚀 [SERVER] KaaryaSetu API listening at http://localhost:${config.port}`);
+    console.log(`🚀 [SERVER] Kirova AI API listening at http://localhost:${config.port}`);
     console.log(`📡 [HEALTH] Health check available at http://localhost:${config.port}/health\n`);
   });
 

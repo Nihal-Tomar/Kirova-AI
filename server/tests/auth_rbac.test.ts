@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+﻿import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import { createApp } from "../src/app";
 import { ensureDbSeeded } from "./setup";
@@ -15,13 +15,13 @@ describe("RBAC & Security Authorization Test Suite", () => {
     // Login as Supervisor
     const supLogin = await request(app)
       .post("/api/auth/login")
-      .send({ email: "supervisor@kaaryasetu.ai", password: "Supervisor@123" });
+      .send({ email: "supervisor@kirova.ai", password: "Supervisor@123" });
     supToken = supLogin.body.token;
 
     // Login as Technician
     const techLogin = await request(app)
       .post("/api/auth/login")
-      .send({ email: "tech.rajesh@kaaryasetu.ai", password: "Tech@123" });
+      .send({ email: "tech.rajesh@kirova.ai", password: "Tech@123" });
     techToken = techLogin.body.token;
   });
 

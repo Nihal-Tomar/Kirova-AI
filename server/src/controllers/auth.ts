@@ -12,9 +12,16 @@ export async function login(req: Request, res: Response): Promise<void> {
     return;
   }
 
+  const normalizedEmail = email.trim().toLowerCase();
+
+  // Support legacy @kaaryasetu.ai addresses as an alias for @kirova.ai
+  const lookupEmail = normalizedEmail.endsWith("@kaaryasetu.ai")
+    ? normalizedEmail.replace("@kaaryasetu.ai", "@kirova.ai")
+    : normalizedEmail;
+
   const userRes = await db.query(
-    "SELECT id, organization_id, name, email, password_hash, role FROM users WHERE LOWER(email) = LOWER($1)",
-    [email.trim()]
+    "SELECT id, organization_id, name, email, password_hash, role FROM users WHERE LOWER(email) = $1",
+    [lookupEmail]
   );
 
   if (userRes.rows.length === 0) {
@@ -30,11 +37,13 @@ export async function login(req: Request, res: Response): Promise<void> {
     return;
   }
 
+  const displayEmail = user.email.replace("@kaaryasetu.ai", "@kirova.ai");
+
   const token = signToken({
     id: user.id,
     organizationId: user.organization_id,
     name: user.name,
-    email: user.email,
+    email: displayEmail,
     role: user.role
   });
 
@@ -44,7 +53,7 @@ export async function login(req: Request, res: Response): Promise<void> {
       id: user.id,
       organizationId: user.organization_id,
       name: user.name,
-      email: user.email,
+      email: displayEmail,
       role: user.role
     }
   });
@@ -60,5 +69,9 @@ export async function getCurrentUser(req: Request, res: Response): Promise<void>
 
 export async function getDemoAccounts(req: Request, res: Response): Promise<void> {
   const usersRes = await db.query("SELECT id, name, email, role FROM users ORDER BY role DESC, name ASC");
-  res.json({ accounts: usersRes.rows });
+  const accounts = usersRes.rows.map(acc => ({
+    ...acc,
+    email: acc.email.replace("@kaaryasetu.ai", "@kirova.ai")
+  }));
+  res.json({ accounts });
 }
