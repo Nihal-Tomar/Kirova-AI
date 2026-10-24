@@ -1,10 +1,19 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { LandingPage } from './pages/LandingPage';
 import { GoogleSignInButton } from './components/GoogleSignInButton';
+// Import landing design tokens for the login page design extension
+import './styles/landing.css';
 
 // ── API Configuration ─────────────────────────────────────────
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+// In production, VITE_API_URL must be set (e.g. https://kirova-api.onrender.com).
+// In development, Vite's proxy forwards /api to localhost:5000 so the env var is optional.
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
+/**
+ * Centralized API request helper.
+ * Distinguishes: network errors, non-JSON responses, server errors (4xx/5xx).
+ * Never leaks stack traces or internal details to the UI.
+ */
 async function apiRequest(path: string, options: RequestInit = {}, token?: string) {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -12,18 +21,51 @@ async function apiRequest(path: string, options: RequestInit = {}, token?: strin
   };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || 'Request failed');
+  // In production (not DEV), fail fast if VITE_API_URL was never set —
+  // rather than silently sending requests to the Vercel SPA origin.
+  const url = API_BASE ? `${API_BASE}${path}` : path;
+  if (!import.meta.env.DEV && !API_BASE) {
+    throw new Error('API URL is not configured. Add VITE_API_URL to your Vercel environment variables.');
+  }
+
+  // Catch network-level failures (DNS, CORS preflight, no server) separately
+  let res: Response;
+  try {
+    res = await fetch(url, { ...options, headers });
+  } catch {
+    if (!API_BASE) {
+      throw new Error('API URL is not configured. Add VITE_API_URL to your Vercel environment variables.');
+    }
+    throw new Error(`Cannot reach the server (${API_BASE}). Check your network or the backend deployment.`);
+  }
+
+  // Try to parse JSON; fall back gracefully for HTML error pages (e.g. 502 nginx)
+  let data: any;
+  const contentType = res.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    data = await res.json();
+  } else {
+    const text = await res.text();
+    if (!res.ok) throw new Error(`Server returned ${res.status} ${res.statusText}.`);
+    throw new Error(`Unexpected response format from server: ${text.slice(0, 80)}`);
+  }
+
+  if (!res.ok) throw new Error(data.message || `Request failed (${res.status})`);
   return data;
 }
 
 async function apiUpload(path: string, formData: FormData, token: string) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}` },
-    body: formData,
-  });
+  const url = API_BASE ? `${API_BASE}${path}` : path;
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+  } catch {
+    throw new Error('Cannot reach the server. Check your network or the backend deployment.');
+  }
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || 'Upload failed');
   return data;
@@ -230,110 +272,159 @@ function EvidencePanel({ evidence }: { evidence: any[] }) {
 }
 
 // ── Login Page ────────────────────────────────────────────────
+// Styled with the landing design system tokens (Pearl White / Midnight Indigo)
+// so it feels like a natural extension of the homepage.
 function LoginPage({ onBackToLanding }: { onBackToLanding?: () => void }) {
   const { login, googleLogin } = useAuth();
   const { addToast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fieldError, setFieldError] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFieldError('');
     setLoading(true);
     try {
       await login(email, password);
     } catch (err: any) {
-      addToast({ type: 'error', title: 'Login failed', message: err.message });
+      const msg: string = err.message || 'Sign in failed';
+      // Show inline field error for credential failures; toast for everything else
+      if (msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('password') || msg.toLowerCase().includes('credentials')) {
+        setFieldError('Incorrect email or password. Please try again.');
+      } else {
+        addToast({ type: 'error', title: 'Sign in failed', message: msg });
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleCredential = async (credential: string) => {
+    setFieldError('');
     setLoading(true);
     try {
       await googleLogin(credential);
     } catch (err: any) {
-      addToast({ type: 'error', title: 'Google Sign-In failed', message: err.message });
+      addToast({ type: 'error', title: 'Google Sign-In failed', message: err.message || 'Please try again.' });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-page">
-      <div className="login-bg-glow" />
-      <div className="login-bg-grid" />
-      <div className="login-card">
+    // Uses landing.css cream background + dark-teal card — matching the homepage palette
+    <div className="kirova-login-page">
+      {/* Subtle ambient glow matching hero section */}
+      <div className="kirova-login-glow" aria-hidden="true" />
+
+      <div className="kirova-login-card">
+        {/* Back link */}
         {onBackToLanding && (
-          <div style={{ marginBottom: '16px' }}>
-            <button
-              type="button"
-              onClick={onBackToLanding}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#94a3b8',
-                cursor: 'pointer',
-                fontSize: '0.8125rem',
-                fontWeight: 500,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '0',
-              }}
-            >
-              ← Back to Homepage
-            </button>
-          </div>
+          <button
+            type="button"
+            className="kirova-login-back"
+            onClick={onBackToLanding}
+            aria-label="Return to homepage"
+          >
+            ← Back to Homepage
+          </button>
         )}
-        <div className="login-header">
-          <div className="login-logo">
-            <svg width="28" height="28" viewBox="0 0 48 48" fill="none">
+
+        {/* Brand header — matches Navbar logo treatment */}
+        <header className="kirova-login-header">
+          <div className="kirova-login-logo" aria-hidden="true">
+            <svg width="32" height="32" viewBox="0 0 48 48" fill="none" aria-hidden="true">
               <rect width="48" height="48" rx="10" fill="#111329" />
               <path d="M14 11V37" stroke="#FFFFFF" strokeWidth="4.5" strokeLinecap="round" />
               <path d="M33 13L21 24L34 37" stroke="#55E7B0" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
               <circle cx="21" cy="24" r="2.5" fill="#D9CCFF" />
             </svg>
           </div>
-          <h1 className="login-title">Kirova AI</h1>
-          <p className="login-subtitle">From Voice to Verified Action</p>
+          <h1 className="kirova-login-wordmark">
+            kirova<span style={{ fontWeight: 500, color: 'var(--foreground-muted)', marginLeft: 2 }}>AI</span>
+          </h1>
+          <p className="kirova-login-tagline">From Voice to Verified Action</p>
+        </header>
+
+        {/* Google Sign-In — prominent, above email form */}
+        <div className="kirova-login-google-wrap">
+          <GoogleSignInButton onCredential={handleGoogleCredential} disabled={loading} />
         </div>
 
-        {/* Google Sign-In button — only rendered when VITE_GOOGLE_CLIENT_ID is set */}
-        <GoogleSignInButton onCredential={handleGoogleCredential} disabled={loading} />
+        {/* Elegant OR divider */}
+        <div className="kirova-login-divider" aria-hidden="true">
+          <span className="kirova-login-divider-line" />
+          <span className="kirova-login-divider-text">or continue with email</span>
+          <span className="kirova-login-divider-line" />
+        </div>
 
-        {/* Divider — only shown when Google button is visible */}
-        {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            margin: '20px 0 4px',
-            color: '#475569',
-            fontSize: '0.75rem',
-            fontWeight: 500,
-          }}>
-            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
-            <span>or sign in with email</span>
-            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
+        {/* Inline error banner */}
+        {fieldError && (
+          <div className="kirova-login-error" role="alert" aria-live="polite">
+            <span aria-hidden="true">⚠</span> {fieldError}
           </div>
         )}
 
-        <form onSubmit={handleLogin}>
-          <div className="form-group">
-            <label className="form-label required">Email</label>
-            <input id="login-email" className="form-control" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required />
+        {/* Email / password form */}
+        <form onSubmit={handleLogin} noValidate>
+          <div className="kirova-form-group">
+            <label htmlFor="login-email" className="kirova-form-label">
+              Email address <span aria-hidden="true" style={{ color: '#ef4444' }}>*</span>
+            </label>
+            <input
+              id="login-email"
+              className="kirova-form-control"
+              type="email"
+              value={email}
+              onChange={e => { setEmail(e.target.value); setFieldError(''); }}
+              placeholder="you@example.com"
+              required
+              autoComplete="email"
+              aria-required="true"
+              aria-invalid={!!fieldError}
+              disabled={loading}
+            />
           </div>
-          <div className="form-group">
-            <label className="form-label required">Password</label>
-            <input id="login-password" className="form-control" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required />
+
+          <div className="kirova-form-group">
+            <label htmlFor="login-password" className="kirova-form-label">
+              Password <span aria-hidden="true" style={{ color: '#ef4444' }}>*</span>
+            </label>
+            <input
+              id="login-password"
+              className="kirova-form-control"
+              type="password"
+              value={password}
+              onChange={e => { setPassword(e.target.value); setFieldError(''); }}
+              placeholder="••••••••"
+              required
+              autoComplete="current-password"
+              aria-required="true"
+              aria-invalid={!!fieldError}
+              disabled={loading}
+            />
           </div>
-          <button id="login-submit" className="btn btn-primary btn-lg w-full" type="submit" disabled={loading}>
-            {loading ? <><Spinner /> Signing in…</> : 'Sign In →'}
+
+          <button
+            id="login-submit"
+            className="kirova-login-submit"
+            type="submit"
+            disabled={loading}
+            aria-busy={loading}
+          >
+            {loading
+              ? <><span className="kirova-login-spinner" aria-hidden="true" /> Signing in…</>
+              : <><span>Sign In</span><span aria-hidden="true">→</span></>
+            }
           </button>
         </form>
 
+        {/* Footer note */}
+        <p className="kirova-login-footer-note">
+          New Google users are automatically provisioned as Technicians.
+        </p>
       </div>
     </div>
   );

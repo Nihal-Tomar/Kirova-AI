@@ -1568,3 +1568,277 @@
     justify-content: center;
   }
 }
+
+/* ==========================================================================
+   LOGIN PAGE — Kirova Design Extension
+   Uses landing.css tokens so the login page is a deliberate continuation
+   of the homepage, not a disconnected admin form.
+   ========================================================================== */
+
+/* Full-page wrapper: cream background matching hero */
+.kirova-login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--background-cream);
+  font-family: var(--font-sans);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ambient glow — mirrors hero-glow, positioned top-center */
+.kirova-login-glow {
+  position: absolute;
+  top: -10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 700px;
+  height: 500px;
+  background: radial-gradient(
+    circle,
+    rgba(217, 204, 255, 0.45) 0%,
+    rgba(247, 241, 231, 0) 68%
+  );
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Card: Midnight Indigo dark card from the teal/dark palette */
+.kirova-login-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 460px;
+  background: var(--background-dark);  /* #111329 */
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 28px;
+  padding: 44px 44px 36px;
+  box-shadow:
+    0 32px 80px rgba(17, 19, 41, 0.28),
+    0 8px 24px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+@media (max-width: 520px) {
+  .kirova-login-card {
+    padding: 32px 24px 28px;
+    border-radius: 22px;
+  }
+}
+
+/* Back link */
+.kirova-login-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--foreground-on-dark-muted);  /* #8EB7BD */
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 24px;
+  transition: color 0.2s ease;
+  font-family: var(--font-sans);
+}
+
+.kirova-login-back:hover {
+  color: var(--foreground-on-dark);
+}
+
+/* Brand header */
+.kirova-login-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.kirova-login-logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  background: #0F1124;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(85, 231, 176, 0.12);
+}
+
+/* Wordmark — mirrors nav-brand-link exactly */
+.kirova-login-wordmark {
+  font-family: var(--font-sans);
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: #FFFFFF;
+  margin: 0 0 6px;
+  line-height: 1.1;
+}
+
+.kirova-login-tagline {
+  font-size: 0.875rem;
+  color: var(--foreground-on-dark-muted);
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Google button wrap */
+.kirova-login-google-wrap {
+  margin-bottom: 4px;
+}
+
+/* OR divider */
+.kirova-login-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 20px 0 20px;
+}
+
+.kirova-login-divider-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.kirova-login-divider-text {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--foreground-on-dark-muted);
+  white-space: nowrap;
+}
+
+/* Inline error banner */
+.kirova-login-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: rgba(239, 68, 68, 0.10);
+  border: 1px solid rgba(239, 68, 68, 0.30);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.8125rem;
+  color: #fca5a5;
+  line-height: 1.45;
+  margin-bottom: 16px;
+}
+
+/* Form — dark fields that sit on the dark card */
+.kirova-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.kirova-form-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--foreground-on-dark-muted);
+  letter-spacing: 0.01em;
+}
+
+.kirova-form-control {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: #FFFFFF;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+  width: 100%;
+}
+
+.kirova-form-control::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.kirova-form-control:focus {
+  border-color: var(--accent-mint);
+  box-shadow: 0 0 0 3px rgba(85, 231, 176, 0.12);
+}
+
+.kirova-form-control[aria-invalid="true"] {
+  border-color: rgba(239, 68, 68, 0.60);
+}
+
+.kirova-form-control:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Submit button — lavender pill, mirrors btn-hero-primary */
+.kirova-login-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  background-color: var(--accent-lavender);   /* #D9CCFF */
+  color: var(--foreground-ink);               /* #24212A */
+  border: 1px solid rgba(124, 92, 252, 0.25);
+  border-radius: 9999px;
+  padding: 13px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-top: 8px;
+  box-shadow: 0 4px 16px rgba(124, 92, 252, 0.18);
+  letter-spacing: -0.01em;
+}
+
+.kirova-login-submit:hover:not(:disabled) {
+  background-color: var(--accent-lavender-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(124, 92, 252, 0.28);
+}
+
+.kirova-login-submit:focus-visible {
+  outline: 2px solid var(--accent-mint);
+  outline-offset: 3px;
+}
+
+.kirova-login-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Inline spinner inside submit button */
+.kirova-login-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(36, 33, 42, 0.25);
+  border-top-color: var(--foreground-ink);
+  border-radius: 50%;
+  animation: kirova-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes kirova-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Footer note */
+.kirova-login-footer-note {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 0.71875rem;
+  color: rgba(255, 255, 255, 0.20);
+  line-height: 1.5;
+}
+
+/* Ensure the Google GIS shimmer placeholder matches dark card */
+.kirova-login-google-wrap [aria-label="Loading Google Sign-In…"] {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
