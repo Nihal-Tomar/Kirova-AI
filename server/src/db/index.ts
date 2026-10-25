@@ -47,14 +47,37 @@ class DatabaseService {
   }
 
   private async initEmbedded(): Promise<void> {
-    const dataDir = path.resolve(__dirname, "../../data/pgdata");
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
     const { PGlite: PGliteConstructor } = await import("@electric-sql/pglite");
-    this.pglite = new PGliteConstructor(dataDir);
     this.isEmbeddedPostgres = true;
-    console.log(`✅ [DATABASE] Initialized embedded PostgreSQL (PGlite) with persistence at: ${dataDir}`);
+
+    if (process.env.NODE_ENV === "test" || config.nodeEnv === "test") {
+      this.pglite = new PGliteConstructor();
+      console.log("✅ [DATABASE] Initialized fast in-memory PostgreSQL (PGlite) for test suite.");
+      return;
+    }
+
+    const dataDir = path.resolve(__dirname, "../../data/pgdata");
+    try {
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      } else {
+        // Clean up stale lock files from previous abrupt process exit
+        const staleFiles = ["postmaster.pid", ".s.PGSQL.5432.lock.out"];
+        for (const f of staleFiles) {
+          const fp = path.join(dataDir, f);
+          if (fs.existsSync(fp)) {
+            try { fs.unlinkSync(fp); } catch {}
+          }
+        }
+      }
+      this.pglite = new PGliteConstructor(dataDir);
+      // Verify readiness
+      await this.pglite.query("SELECT 1", []);
+      console.log(`✅ [DATABASE] Initialized embedded PostgreSQL (PGlite) with persistence at: ${dataDir}`);
+    } catch (err: any) {
+      console.warn(`⚠️  [DATABASE] Could not initialize persistent PGlite at ${dataDir} (${err.message}). Using in-memory database.`);
+      this.pglite = new PGliteConstructor();
+    }
   }
 
   async query<T = any>(text: string, params: any[] = []): Promise<QueryResult<T>> {

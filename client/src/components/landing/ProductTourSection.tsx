@@ -12,52 +12,53 @@ export const ProductTourSection: React.FC<ProductTourSectionProps> = ({
 
   const tabContent = {
     voice: {
-      query: '"Main spindle bearing overheating and vibrating at 1800 RPM. Motor drawing 14A."',
-      machine: 'MCH-001 • Primary CNC Milling Center',
-      subsystem: 'Spindle Drive Assembly',
+      query: '"MCH-006 screw compressor & pump tripping above 95°C under continuous line pressure."',
+      machine: 'MCH-006 • Screw Compressor Alpha & Pump',
+      subsystem: 'Air-Oil Separator & Heat Exchanger',
       severity: 'HIGH',
       tech: 'Rajesh Kumar (Technician)',
       evidence: [
-        { label: 'EXTRACTED', field: 'Symptom', val: 'Overheating & Vibration', color: 'extracted' },
-        { label: 'EXTRACTED', field: 'Subsystem', val: 'Spindle Bearing', color: 'extracted' },
-        { label: 'RETRIEVED', field: 'Machine Registry', val: 'MCH-001 (Bay 3)', color: 'retrieved' },
-        { label: 'INFERRED', field: 'Safety Impact', val: 'Bearing seizure hazard', color: 'grounded' },
+        { label: 'REPORTED', field: 'Symptom', val: 'Overheating above 95°C', color: 'extracted' },
+        { label: 'RETRIEVED', field: 'Asset Tag', val: 'MCH-006 (Utility Room)', color: 'retrieved' },
+        { label: 'RETRIEVED', field: 'History Match', val: 'WO-2026-0006: Filter choked', color: 'grounded' },
+        { label: 'SUGGESTED', field: 'Decision Support', val: 'Replace filter (PT-FL-707)', color: 'extracted' },
       ],
     },
     studio: {
-      query: '"Hydraulic hose leaking oil under conveyor 2 near packing line"',
-      machine: 'MCH-004 • Secondary Conveyor Line',
-      subsystem: 'Hydraulic Pressure Loop',
+      query: '"Hydraulic press cylinder slow descent and pressure drop below 30 bar"',
+      machine: 'MCH-005 • 50-Ton Hydraulic Press',
+      subsystem: 'Hydraulic Cylinder Seal Kit',
       severity: 'CRITICAL',
-      tech: 'Amit Verma (Hydraulics Specialist)',
+      tech: 'Amit Verma (Line Tech)',
       evidence: [
-        { label: 'EXTRACTED', field: 'Fault', val: 'Oil leakage / pressure loss', color: 'extracted' },
-        { label: 'RETRIEVED', field: 'Equipment ID', val: 'MCH-004', color: 'retrieved' },
-        { label: 'INFERRED', field: 'Required Part', val: 'High-pressure ISO hydraulic seal', color: 'grounded' },
+        { label: 'REPORTED', field: 'Fault', val: 'Pressure loss below 30 bar', color: 'extracted' },
+        { label: 'RETRIEVED', field: 'Equipment ID', val: 'MCH-005 (Stamping Area)', color: 'retrieved' },
+        { label: 'RETRIEVED', field: 'Verified History', val: 'Seal replacement held 50T hold test', color: 'grounded' },
+        { label: 'SUGGESTED', field: 'Required Part', val: 'PT-HC-606 (Seal Kit)', color: 'grounded' },
       ],
     },
     multilingual: {
       query: '"Machine chaar me se ajeeb awaaz aa rahi hai aur belt slip ho raha hai"',
-      machine: 'MCH-002 • Stamping Press Unit',
-      subsystem: 'Drive Belt Tensioner',
+      machine: 'MCH-004 • Main Conveyor Belt 4',
+      subsystem: 'Belt Tensioner Roller (PT-TR-505)',
       severity: 'MEDIUM',
       tech: 'Suresh Patil (Line Tech)',
       evidence: [
-        { label: 'EXTRACTED', field: 'Dialect', val: 'Hinglish (Hindi + English)', color: 'extracted' },
-        { label: 'RETRIEVED', field: 'STT Engine', val: 'Sarvam Saaras STT (Vernacular)', color: 'retrieved' },
-        { label: 'INFERRED', field: 'Tension Metric', val: 'Retension or replace 48V belt', color: 'grounded' },
+        { label: 'REPORTED', field: 'Dialect', val: 'Hinglish (Hindi + English)', color: 'extracted' },
+        { label: 'RETRIEVED', field: 'Disambiguation', val: 'MCH-004 Conveyor vs MCH-014 Lathe', color: 'retrieved' },
+        { label: 'SUGGESTED', field: 'Decision', val: 'Inspect tensioner bearing play', color: 'grounded' },
       ],
     },
     audit: {
-      query: '"Inspection passed and spindle re-calibrated. Ready for verification closing."',
-      machine: 'MCH-001 • Primary CNC Milling Center',
-      subsystem: 'Spindle Calibration',
-      severity: 'RESOLVED',
-      tech: 'Priya Sharma (Supervisor Reviewer)',
+      query: '"Tensioner replaced and 2-hour full load test verified with 0 drift."',
+      machine: 'MCH-004 • Main Conveyor Belt 4',
+      subsystem: 'Drive Assembly Verification',
+      severity: 'VERIFIED_CLOSED',
+      tech: 'Priya Sharma (Supervisor)',
       evidence: [
-        { label: 'EXTRACTED', field: 'Action', val: 'Work Order Resolution Submission', color: 'extracted' },
-        { label: 'RETRIEVED', field: 'Audit Hash', val: '0x8f2d...c3a9 (Immutable PG Log)', color: 'retrieved' },
-        { label: 'INFERRED', field: 'PostgreSQL Defense', val: 'SQL UPDATE/DELETE blocked by trigger', color: 'grounded' },
+        { label: 'REPORTED', field: 'Resolution', val: 'Installed PT-TR-505 roller', color: 'extracted' },
+        { label: 'RETRIEVED', field: 'Audit Hash', val: 'Append-Only PostgreSQL Log', color: 'retrieved' },
+        { label: 'RETRIEVED', field: 'History Feedback', val: 'Enriched verified asset dataset', color: 'grounded' },
       ],
     },
   };
@@ -75,31 +76,31 @@ export const ProductTourSection: React.FC<ProductTourSectionProps> = ({
               className={`tour-tab-btn ${activeTab === 'voice' ? 'active' : ''}`}
               onClick={() => { setActiveTab('voice'); setVerifiedState(false); }}
             >
-              <span>🎙️ Voice Reporting</span>
-              <span className="tour-tab-badge">IN-BROWSER</span>
+              <span>🌡️ Overheating Pump & Compressor</span>
+              <span className="tour-tab-badge">CASE STUDY</span>
             </button>
             <button
               type="button"
               className={`tour-tab-btn ${activeTab === 'studio' ? 'active' : ''}`}
               onClick={() => { setActiveTab('studio'); setVerifiedState(false); }}
             >
-              <span>⚙️ Studio AI</span>
-              <span className="tour-tab-badge">MOST POPULAR</span>
+              <span>⚖️ Repair vs Replace</span>
+              <span className="tour-tab-badge">DECISION ENGINE</span>
             </button>
             <button
               type="button"
               className={`tour-tab-btn ${activeTab === 'multilingual' ? 'active' : ''}`}
               onClick={() => { setActiveTab('multilingual'); setVerifiedState(false); }}
             >
-              <span>🌐 Multilingual & Hinglish</span>
-              <span className="tour-tab-badge">DUAL-ENGINE</span>
+              <span>🌐 Multilingual Intake</span>
+              <span className="tour-tab-badge">SARVAM STT</span>
             </button>
             <button
               type="button"
               className={`tour-tab-btn ${activeTab === 'audit' ? 'active' : ''}`}
               onClick={() => { setActiveTab('audit'); setVerifiedState(false); }}
             >
-              <span>🔒 Verified Audit</span>
+              <span>🔒 Verified History Loop</span>
               <span className="tour-tab-badge">PG-TRIGGER</span>
             </button>
           </div>
@@ -108,16 +109,16 @@ export const ProductTourSection: React.FC<ProductTourSectionProps> = ({
         {/* Section Header */}
         <div className="tour-header">
           <div className="tour-eyebrow">
-            <span>KIROVA AI CORE PIPELINE • VERIFIED WORKFLOW</span>
+            <span>NOT JUST AN AI ANSWER • SHOW THE EVIDENCE</span>
           </div>
 
           <h2 className="tour-heading">
-            Less manual work. <br />
-            <em className="serif-italic">More meaningful action.</em>
+            From repeated machine faults to <br />
+            <em className="serif-italic">evidence-backed repair options.</em>
           </h2>
 
           <p className="tour-subtext">
-            See how Kirova AI transforms natural language input into structured, reviewable workflows.
+            Every recommendation links directly to verified historical work orders and original records, while ambiguous matches and missing diagnostic information remain completely visible. The case data shown below is illustrative demonstration data for product walkthrough, not live factory output.
           </p>
         </div>
 
@@ -127,19 +128,18 @@ export const ProductTourSection: React.FC<ProductTourSectionProps> = ({
           <div className="tour-card-traditional">
             <div>
               <div className="tour-card-badge-row">
-                <span className="tour-tag-traditional">TRADITIONAL MANUAL WORKFLOW</span>
+                <span className="tour-tag-traditional">TRADITIONAL REACTIVE FIXES</span>
               </div>
-              <div className="tour-card-stat">15+ mins</div>
+              <div className="tour-card-stat">Repeat Guesswork</div>
               <p className="tour-card-desc">
-                Verbal handoffs over noisy shop floors, scribble notes on paper clipboards,
-                misidentified machine tags, and supervisor phone tags delaying repairs.
+                Workers repeatedly report recurring breakdown symptoms without history. Technicians apply temporary patches without knowing past parts failed, leading to chronic downtime.
               </p>
             </div>
 
             <div className="scrubbing-bar-wrapper">
               <span>00:00</span>
               <div className="scrubbing-progress-line" />
-              <span>Searching... 45:30</span>
+              <span>Unverified records · No audit</span>
             </div>
           </div>
 
@@ -149,21 +149,20 @@ export const ProductTourSection: React.FC<ProductTourSectionProps> = ({
               <div className="tour-card-badge-row">
                 <span className="tour-tag-future">
                   <span>⚡</span>
-                  <span>KIROVA FLOW</span>
+                  <span>KIROVA EVIDENCE FLOW</span>
                 </span>
-                <span className="tour-pill-rag">SUB-10MS EXTRACTION</span>
+                <span className="tour-pill-rag">EVIDENCE-GROUNDED</span>
               </div>
-              <div className="tour-card-stat">2 seconds</div>
+              <div className="tour-card-stat">4-Way Comparison</div>
               <p className="tour-card-desc">
-                Type or speak in Hindi, Hinglish, or English. Faster-Whisper & Sarvam AI extract
-                machine IDs, symptoms, and severity with grounded evidence and supervisor sign-off.
+                Retrieves verified machine history, shows past parts replaced, highlights missing symptoms, and generates an explainable comparison: inspect, repair, replace component, or replace unit.
               </p>
             </div>
 
             <div className="future-ingest-bar">
               <div className="future-live-audio">
                 <span>••••••••••</span>
-                <span>Live 16kHz Ingestion</span>
+                <span>Verified Historical Grounding</span>
               </div>
               <button
                 type="button"
@@ -197,7 +196,7 @@ export const ProductTourSection: React.FC<ProductTourSectionProps> = ({
                   ▶
                 </div>
                 <div className="mockup-video-title">{current.machine}</div>
-                <div className="mockup-video-meta">Live Telemetry · 1,800 RPM · Current Draw: 14.2A</div>
+                <div className="mockup-video-meta">Simulated Telemetry · 1,800 RPM · Current Draw: 14.2A</div>
               </div>
             </div>
 
@@ -226,7 +225,7 @@ export const ProductTourSection: React.FC<ProductTourSectionProps> = ({
                     <span>🧠</span>
                     <span>Sarvam Saaras + Anti-Hallucination Guardrail</span>
                   </div>
-                  <span className="response-match-score">98.6% match</span>
+                  <span className="response-match-score">history match</span>
                 </div>
 
                 <div className="response-text">
@@ -257,7 +256,7 @@ export const ProductTourSection: React.FC<ProductTourSectionProps> = ({
                     <span>Verify & Approve Work Order</span>
                   </button>
                 ) : (
-                  <div style={{ flex: 1, background: 'rgba(85, 231, 176, 0.15)', border: '1px solid var(--accent-mint)', borderRadius: '9999px', padding: '10px', textAlign: 'center', color: 'var(--accent-mint)', fontWeight: 600, fontSize: '0.875rem' }}>
+                  <div style={{ flex: 1, background: 'rgba(201, 184, 255, 0.15)', border: '1px solid var(--accent-mint)', borderRadius: '9999px', padding: '10px', textAlign: 'center', color: 'var(--accent-mint)', fontWeight: 600, fontSize: '0.875rem' }}>
                     ✅ Work Order Verified & Stamped into Audit Log
                   </div>
                 )}

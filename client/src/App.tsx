@@ -271,6 +271,292 @@ function EvidencePanel({ evidence }: { evidence: any[] }) {
   );
 }
 
+// ── Decision Support & Repair vs Replace Component ─────────────
+function getFeasibilityBadge(feasibility: string) {
+  switch (feasibility) {
+    case 'STRONGLY_INDICATED': return <span className="badge badge-approved">✓ Strongly Indicated</span>;
+    case 'VIABLE_OPTION': return <span className="badge badge-review">Viable Option</span>;
+    case 'CONDITIONAL': return <span className="badge badge-clarification">⚠️ Conditional</span>;
+    case 'NOT_RECOMMENDED': return <span className="badge badge-rejected">✕ Not Recommended</span>;
+    default: return <span className="badge badge-draft">{feasibility}</span>;
+  }
+}
+
+function DecisionSupportPanel({ data, loading }: { data: any; loading: boolean }) {
+  if (loading) {
+    return (
+      <div style={{ padding: 'var(--space-6)', textAlign: 'center' }}>
+        <Spinner />
+        <div className="text-xs text-muted mt-2">Evaluating repair vs replace decision matrix…</div>
+      </div>
+    );
+  }
+  if (!data || !data.options) {
+    return <EmptyState icon="⚖️" title="Decision analysis unavailable" desc="Unable to generate decision support report for this case." />;
+  }
+
+  const optIcons: Record<string, string> = {
+    INSPECT: '🔍',
+    REPAIR: '🛠️',
+    REPLACE_COMPONENT: '🔄',
+    REPLACE_MACHINE: '🏭',
+  };
+
+  return (
+    <div className="decision-support-panel" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+      {/* Advisory Banner */}
+      <div className="alert alert-info" style={{ fontSize: '12px', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+        <span>⚖️</span>
+        <div>
+          <strong>ADVISORY DECISION SUPPORT ONLY:</strong> {data.advisoryDisclaimer}
+        </div>
+      </div>
+
+      {/* Summary Matrix Header */}
+      <div style={{
+        background: 'var(--bg-elevated)',
+        border: '1px solid var(--border-subtle)',
+        borderRadius: 'var(--radius-md)',
+        padding: 'var(--space-4)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: 'var(--space-3)'
+      }}>
+        <div>
+          <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>Algorithmic Recommendation</div>
+          <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--brand-primary-light)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span>{optIcons[data.summary?.recommendedOption] || '💡'}</span>
+            <span>{data.options.find((o: any) => o.optionKey === data.summary?.recommendedOption)?.title || data.summary?.recommendedOption}</span>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: '12px', fontSize: '12px' }}>
+          <div>
+            <span className="text-muted">Asset Recurrence:</span>{' '}
+            <strong style={{ color: data.summary?.historicalRecurrenceCountOnAsset > 1 ? '#ef4444' : 'var(--text-primary)' }}>
+              {data.summary?.historicalRecurrenceCountOnAsset}×
+            </strong>
+          </div>
+          <div>
+            <span className="text-muted">Peer Benchmarks:</span>{' '}
+            <strong>{data.summary?.peerEquipmentVerifiedRepairsCount} verified</strong>
+          </div>
+        </div>
+      </div>
+
+      {/* 4 Decision Option Cards */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+        {data.options.map((opt: any) => {
+          const isRec = opt.optionKey === data.summary?.recommendedOption;
+          return (
+            <div
+              key={opt.optionKey}
+              style={{
+                background: isRec ? 'rgba(99, 102, 241, 0.05)' : 'var(--bg-card)',
+                border: isRec ? '1px solid var(--brand-primary)' : '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-md)',
+                padding: 'var(--space-4)',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '18px' }}>{optIcons[opt.optionKey] || '•'}</span>
+                  <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary)' }}>{opt.title}</span>
+                  {isRec && <span className="badge badge-approved" style={{ fontSize: '10px' }}>★ Recommended</span>}
+                </div>
+                <div>{getFeasibilityBadge(opt.feasibility)}</div>
+              </div>
+
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '10px' }}>
+                {opt.summary}
+              </div>
+
+              {/* Rationale Pill */}
+              <div style={{ background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', padding: '6px 10px', fontSize: '12px', marginBottom: '10px', borderLeft: '3px solid var(--brand-primary)' }}>
+                <strong>Rationale:</strong> {opt.feasibilityRationale}
+              </div>
+
+              {/* Cost & Downtime Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px', fontSize: '11px' }}>
+                <div style={{ background: 'var(--bg-base)', padding: '6px 10px', borderRadius: 'var(--radius-sm)' }}>
+                  <span className="text-muted">Estimated Cost:</span>{' '}
+                  <strong style={{ color: opt.estimatedCost?.category === 'CAPITAL_EXPENDITURE' ? '#ef4444' : 'var(--brand-accent)' }}>
+                    {opt.estimatedCost?.category}
+                  </strong>
+                  <div style={{ color: 'var(--text-secondary)', marginTop: '2px' }}>{opt.estimatedCost?.description}</div>
+                </div>
+                <div style={{ background: 'var(--bg-base)', padding: '6px 10px', borderRadius: 'var(--radius-sm)' }}>
+                  <span className="text-muted">Expected Downtime:</span>{' '}
+                  <strong>{opt.estimatedDowntime?.range}</strong>
+                  <div style={{ color: 'var(--text-secondary)', marginTop: '2px' }}>{opt.estimatedDowntime?.basis}</div>
+                </div>
+              </div>
+
+              {/* Supporting Evidence List */}
+              {opt.supportingEvidence?.length > 0 && (
+                <div style={{ marginBottom: '8px' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                    Supporting Traceable Evidence:
+                  </div>
+                  <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                    {opt.supportingEvidence.map((ev: string, i: number) => (
+                      <li key={i}>{ev}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Tradeoffs & Risks */}
+              {opt.tradeoffsAndRisks?.length > 0 && (
+                <div style={{ marginBottom: '8px' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                    Tradeoffs & Safety Implications:
+                  </div>
+                  <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                    {opt.tradeoffsAndRisks.map((tr: string, i: number) => (
+                      <li key={i}>{tr}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Next Steps */}
+              {opt.nextSteps && (
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', borderTop: '1px solid var(--border-subtle)', paddingTop: '6px', marginTop: '6px' }}>
+                  <strong style={{ color: 'var(--text-secondary)' }}>Action Required:</strong> {opt.nextSteps}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Evidence Graph Component ──────────────────────────────────
+function EvidenceGraphPanel({ data, loading }: { data: any; loading: boolean }) {
+  const [selectedNode, setSelectedNode] = useState<any>(null);
+
+  if (loading) {
+    return (
+      <div style={{ padding: 'var(--space-6)', textAlign: 'center' }}>
+        <Spinner />
+        <div className="text-xs text-muted mt-2">Constructing source-linked evidence graph…</div>
+      </div>
+    );
+  }
+  if (!data || !data.nodes || data.nodes.length === 0) {
+    return <EmptyState icon="🕸️" title="No graph data" desc="Evidence relationships could not be loaded." />;
+  }
+
+  const typeConfig: Record<string, { icon: string; color: string; border: string }> = {
+    INCIDENT: { icon: '🚨', color: 'rgba(239, 68, 68, 0.15)', border: '#ef4444' },
+    MACHINE: { icon: '⚙️', color: 'rgba(99, 102, 241, 0.15)', border: '#6366f1' },
+    COMPONENT: { icon: '🧩', color: 'rgba(6, 182, 212, 0.15)', border: '#06b6d4' },
+    WORK_ORDER: { icon: '📜', color: 'rgba(245, 158, 11, 0.15)', border: '#f59e0b' },
+    ACTION: { icon: '🔧', color: 'rgba(139, 92, 246, 0.15)', border: '#8b5cf6' },
+    OUTCOME: { icon: '✅', color: 'rgba(16, 185, 129, 0.15)', border: '#10b981' },
+    SOURCE_RECORD: { icon: '📎', color: 'rgba(100, 116, 139, 0.15)', border: '#64748b' },
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+      <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+        Interactive entity relationship graph backed by verified PostgreSQL records. Click any node to inspect traceable audit details.
+      </div>
+
+      {/* Nodes visual cluster */}
+      <div style={{
+        background: 'var(--bg-base)',
+        border: '1px solid var(--border-subtle)',
+        borderRadius: 'var(--radius-md)',
+        padding: 'var(--space-4)',
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '10px',
+        alignItems: 'center'
+      }}>
+        {data.nodes.map((n: any) => {
+          const cfg = typeConfig[n.type] || { icon: '•', color: 'rgba(255,255,255,0.05)', border: '#fff' };
+          const isSelected = selectedNode?.id === n.id;
+          return (
+            <button
+              key={n.id}
+              type="button"
+              onClick={() => setSelectedNode(n)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: cfg.color,
+                border: `1.5px solid ${isSelected ? '#fff' : cfg.border}`,
+                borderRadius: 'var(--radius-full)',
+                padding: '5px 12px',
+                color: 'var(--text-primary)',
+                fontSize: '12px',
+                cursor: 'pointer',
+                boxShadow: isSelected ? '0 0 10px rgba(99, 102, 241, 0.5)' : 'none',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <span>{cfg.icon}</span>
+              <span style={{ fontWeight: 600 }}>{n.label}</span>
+              <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>[{n.type}]</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Relationship Edges Summary */}
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)' }}>
+        <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px' }}>
+          Documented Relationships ({data.edges?.length || 0}):
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px' }}>
+          {data.edges?.map((e: any, i: number) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)' }}>
+              <span className="font-mono text-xs text-muted">{e.source}</span>
+              <span style={{ color: 'var(--brand-primary-light)', fontSize: '11px', fontWeight: 600 }}>──[{e.relationship}]──▶</span>
+              <span className="font-mono text-xs text-muted">{e.target}</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>({e.label})</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Selected Node Details Drawer */}
+      {selectedNode && (
+        <div style={{
+          background: 'var(--bg-elevated)',
+          border: '1px solid var(--brand-primary)',
+          borderRadius: 'var(--radius-md)',
+          padding: 'var(--space-4)',
+          position: 'relative'
+        }}>
+          <button
+            type="button"
+            onClick={() => setSelectedNode(null)}
+            style={{ position: 'absolute', top: '10px', right: '12px', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '16px' }}
+          >
+            ✕
+          </button>
+          <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
+            {selectedNode.label}
+          </div>
+          <div style={{ fontSize: '11px', color: 'var(--brand-primary-light)', textTransform: 'uppercase', marginBottom: '8px', fontWeight: 600 }}>
+            Node Type: {selectedNode.type} · ID: {selectedNode.id}
+          </div>
+          <pre style={{ margin: 0, padding: '8px', background: 'var(--bg-base)', borderRadius: 'var(--radius-sm)', fontSize: '11px', color: 'var(--text-secondary)', overflowX: 'auto', fontFamily: 'var(--font-mono)' }}>
+            {JSON.stringify(selectedNode.details, null, 2)}
+          </pre>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Login Page ────────────────────────────────────────────────
 // Styled with the landing design system tokens (Pearl White / Midnight Indigo)
 // so it feels like a natural extension of the homepage.
@@ -420,6 +706,39 @@ function LoginPage({ onBackToLanding }: { onBackToLanding?: () => void }) {
             }
           </button>
         </form>
+
+        {/* Quick Demo Role Selector */}
+        <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px', fontWeight: 600 }}>
+            ⚡ Hackathon Demo Accounts (1-Click)
+          </div>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              style={{ fontSize: '11px', padding: '4px 10px', background: 'rgba(99, 102, 241, 0.12)', color: '#818cf8', border: '1px solid rgba(99, 102, 241, 0.35)' }}
+              onClick={() => { setEmail('supervisor@kirova.ai'); setPassword('Supervisor@123'); }}
+            >
+              🔵 Supervisor (Priya)
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              style={{ fontSize: '11px', padding: '4px 10px', background: 'rgba(16, 185, 129, 0.12)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.35)' }}
+              onClick={() => { setEmail('tech.rajesh@kirova.ai'); setPassword('Tech@123'); }}
+            >
+              🟢 Technician (Rajesh)
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              style={{ fontSize: '11px', padding: '4px 10px', background: 'rgba(245, 158, 11, 0.12)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.35)' }}
+              onClick={() => { setEmail('worker.amit@kirova.ai'); setPassword('Worker@123'); }}
+            >
+              🟡 Worker (Amit)
+            </button>
+          </div>
+        </div>
 
         {/* Footer note */}
         <p className="kirova-login-footer-note">
@@ -1019,6 +1338,11 @@ function IncidentsView() {
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('');
   const [selected, setSelected] = useState<any>(null);
+  const [modalTab, setModalTab] = useState<'intake' | 'decision' | 'graph' | 'history'>('intake');
+  const [decisionSupport, setDecisionSupport] = useState<any>(null);
+  const [evidenceGraph, setEvidenceGraph] = useState<any>(null);
+  const [dsLoading, setDsLoading] = useState(false);
+  const [egLoading, setEgLoading] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
   const [priority, setPriority] = useState('MEDIUM');
 
@@ -1030,9 +1354,25 @@ function IncidentsView() {
   useEffect(() => { load(); }, [load]);
 
   const openDetail = async (id: string) => {
+    setModalTab('intake');
+    setDecisionSupport(null);
+    setEvidenceGraph(null);
     try {
       const d = await apiRequest(`/api/reports/${id}`, {}, auth.token!);
       setSelected(d);
+
+      // Pre-load decision support & evidence graph for supervisor analysis
+      setDsLoading(true);
+      apiRequest(`/api/incidents/${id}/decision-support`, {}, auth.token!)
+        .then(ds => setDecisionSupport(ds))
+        .catch(() => {})
+        .finally(() => setDsLoading(false));
+
+      setEgLoading(true);
+      apiRequest(`/api/incidents/${id}/evidence-graph`, {}, auth.token!)
+        .then(eg => setEvidenceGraph(eg))
+        .catch(() => {})
+        .finally(() => setEgLoading(false));
     } catch (e: any) { addToast({ type: 'error', title: e.message }); }
   };
 
@@ -1063,39 +1403,94 @@ function IncidentsView() {
               <span className="badge badge-draft">{selected.input_channel}</span>
             </div>
 
-            <div className="info-grid mb-5">
-              {[
-                ['Reporter', selected.reporter_name],
-                ['Machine', selected.machine_name || '—'],
-                ['Asset Tag', selected.asset_tag || '—'],
-                ['Site', selected.site_name || '—'],
-                ['Category', selected.symptom_category || '—'],
-                ['Filed', formatDate(selected.created_at)],
-              ].map(([l, v]) => <div key={l} className="info-item"><span className="info-label">{l}</span><span className="info-value">{v}</span></div>)}
+            {/* Sub-Tabs for Supervisor Incident Analysis */}
+            <div className="tabs mb-4">
+              <button type="button" className={`tab-btn ${modalTab === 'intake' ? 'active' : ''}`} onClick={() => setModalTab('intake')}>
+                📋 Intake & Evidence
+              </button>
+              <button type="button" className={`tab-btn ${modalTab === 'decision' ? 'active' : ''}`} onClick={() => setModalTab('decision')}>
+                ⚖️ Repair vs Replace
+              </button>
+              <button type="button" className={`tab-btn ${modalTab === 'graph' ? 'active' : ''}`} onClick={() => setModalTab('graph')}>
+                🕸️ Evidence Graph
+              </button>
+              <button type="button" className={`tab-btn ${modalTab === 'history' ? 'active' : ''}`} onClick={() => setModalTab('history')}>
+                📚 Asset History ({selected.groundedHistory?.length || 0})
+              </button>
             </div>
 
-            {selected.corrected_transcript && (
-              <div className="form-group">
-                <label className="form-label">Transcript</label>
-                <div style={{ background: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)', padding: 'var(--space-4)', fontSize: 13, color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                  "{selected.corrected_transcript}"
-                </div>
-              </div>
-            )}
-            {selected.symptom_text && (
-              <div className="form-group">
-                <label className="form-label">AI Symptom</label>
-                <div style={{ background: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)', padding: 'var(--space-4)', fontSize: 13 }}>{selected.symptom_text}</div>
-              </div>
-            )}
-            {selected.urgency_rationale && (
-              <div className="alert alert-info">💡 Urgency: {selected.urgency_rationale}</div>
-            )}
-            {selected.evidence?.length > 0 && (
+            {modalTab === 'intake' && (
               <>
-                <div className="card-title mb-3" style={{ fontSize: 14 }}>📎 Evidence</div>
-                <EvidencePanel evidence={selected.evidence} />
+                <div className="info-grid mb-5">
+                  {[
+                    ['Reporter', selected.reporter_name],
+                    ['Machine', selected.machine_name || '—'],
+                    ['Asset Tag', selected.asset_tag || '—'],
+                    ['Site', selected.site_name || '—'],
+                    ['Category', selected.symptom_category || '—'],
+                    ['Filed', formatDate(selected.created_at)],
+                  ].map(([l, v]) => <div key={l} className="info-item"><span className="info-label">{l}</span><span className="info-value">{v}</span></div>)}
+                </div>
+
+                {selected.corrected_transcript && (
+                  <div className="form-group">
+                    <label className="form-label">Transcript</label>
+                    <div style={{ background: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)', padding: 'var(--space-4)', fontSize: 13, color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                      "{selected.corrected_transcript}"
+                    </div>
+                  </div>
+                )}
+                {selected.symptom_text && (
+                  <div className="form-group">
+                    <label className="form-label">AI Symptom</label>
+                    <div style={{ background: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)', padding: 'var(--space-4)', fontSize: 13 }}>{selected.symptom_text}</div>
+                  </div>
+                )}
+                {selected.urgency_rationale && (
+                  <div className="alert alert-info">💡 Urgency: {selected.urgency_rationale}</div>
+                )}
+                {selected.evidence?.length > 0 && (
+                  <>
+                    <div className="card-title mb-3" style={{ fontSize: 14 }}>📎 Evidence Provenance</div>
+                    <EvidencePanel evidence={selected.evidence} />
+                  </>
+                )}
               </>
+            )}
+
+            {modalTab === 'decision' && (
+              <DecisionSupportPanel data={decisionSupport} loading={dsLoading} />
+            )}
+
+            {modalTab === 'graph' && (
+              <EvidenceGraphPanel data={evidenceGraph} loading={egLoading} />
+            )}
+
+            {modalTab === 'history' && (
+              <div>
+                <div className="card-subtitle mb-3">Verified closed work orders for {selected.machine_name || selected.asset_tag} & similar equipment</div>
+                {(!selected.groundedHistory || selected.groundedHistory.length === 0) ? (
+                  <EmptyState icon="📚" title="No past records" desc="No previous verified maintenance events on this asset." />
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+                    {selected.groundedHistory.map((h: any, i: number) => (
+                      <div key={i} style={{ background: 'var(--bg-card)', border: h.isSameMachine ? '1px solid rgba(99,102,241,0.3)' : '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)' }}>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '4px' }}>
+                          <span style={{ fontSize: '11px', fontWeight: 700, color: h.isSameMachine ? 'var(--brand-primary-light)' : 'var(--text-muted)' }}>
+                            {h.isSameMachine ? '✓ Same Asset' : 'Similar Equipment'}
+                          </span>
+                          <span className="badge badge-approved" style={{ fontSize: '10px' }}>VERIFIED CLOSED</span>
+                          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{h.reportNumber} · {h.workOrderNumber}</span>
+                        </div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-primary)', marginBottom: '4px' }}>{h.symptomText}</div>
+                        {h.resolutionSummary && <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}><strong>Resolution:</strong> {h.resolutionSummary}</div>}
+                        {h.technicianFindings && <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}><strong>Findings:</strong> {h.technicianFindings}</div>}
+                        {h.verifiedAt && <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px' }}>Verified: {formatDate(h.verifiedAt)}</div>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
 
             {selected.status === 'AWAITING_REVIEW' && (
@@ -1352,6 +1747,12 @@ function MyWorkOrdersView() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<any>(null);
+  const [selectedHistory, setSelectedHistory] = useState<any[]>([]);
+  const [techModalTab, setTechModalTab] = useState<'work' | 'history' | 'decision' | 'graph'>('work');
+  const [techDecisionSupport, setTechDecisionSupport] = useState<any>(null);
+  const [techEvidenceGraph, setTechEvidenceGraph] = useState<any>(null);
+  const [techDsLoading, setTechDsLoading] = useState(false);
+  const [techEgLoading, setTechEgLoading] = useState(false);
   const [resolutionSummary, setResolutionSummary] = useState('');
   const [findings, setFindings] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
@@ -1363,9 +1764,41 @@ function MyWorkOrdersView() {
   useEffect(() => { load(); }, [load]);
 
   const openDetail = async (id: string) => {
+    setTechModalTab('work');
+    setTechDecisionSupport(null);
+    setTechEvidenceGraph(null);
     try {
       const d = await apiRequest(`/api/work-orders/${id}`, {}, auth.token!);
-      setSelected(d); setResolutionSummary(''); setFindings('');
+      setSelected(d);
+      setResolutionSummary('');
+      setFindings('');
+      setSelectedHistory([]);
+
+      // Fetch maintenance history once assigned — only available after assignment
+      const workableStatuses = ['ASSIGNED', 'IN_PROGRESS', 'RESOLVED', 'RETURNED_FOR_REWORK', 'VERIFIED_CLOSED'];
+      if (workableStatuses.includes(d.status)) {
+        try {
+          const h = await apiRequest(`/api/work-orders/${id}/history`, {}, auth.token!);
+          setSelectedHistory(h.verifiedClosedIncidents || []);
+        } catch {
+          // History unavailable — not a blocking error
+        }
+      }
+
+      // Preload decision support and evidence graph for technician investigation
+      if (d.incident_id) {
+        setTechDsLoading(true);
+        apiRequest(`/api/incidents/${d.incident_id}/decision-support`, {}, auth.token!)
+          .then(ds => setTechDecisionSupport(ds))
+          .catch(() => {})
+          .finally(() => setTechDsLoading(false));
+
+        setTechEgLoading(true);
+        apiRequest(`/api/incidents/${d.incident_id}/evidence-graph`, {}, auth.token!)
+          .then(eg => setTechEvidenceGraph(eg))
+          .catch(() => {})
+          .finally(() => setTechEgLoading(false));
+      }
     } catch (e: any) { addToast({ type: 'error', title: e.message }); }
   };
 
@@ -1391,6 +1824,7 @@ function MyWorkOrdersView() {
               <span className={`badge ${getStatusBadgeClass(selected.status)}`}>{formatStatus(selected.status)}</span>
               <span className={`badge priority-badge ${getPriorityClass(selected.priority)}`}>{selected.priority}</span>
             </div>
+
             <div className="info-grid mb-5">
               {[
                 ['Machine', selected.machine_name],
@@ -1405,57 +1839,134 @@ function MyWorkOrdersView() {
               <div className="alert alert-info mb-4">🔧 Job: {selected.symptom_text}</div>
             )}
 
-            {selected.statusHistory?.length > 0 && (
+            {/* Sub-Tabs for Technician Case Investigation */}
+            <div className="tabs mb-4">
+              <button type="button" className={`tab-btn ${techModalTab === 'work' ? 'active' : ''}`} onClick={() => setTechModalTab('work')}>
+                🔧 Work Execution
+              </button>
+              <button type="button" className={`tab-btn ${techModalTab === 'history' ? 'active' : ''}`} onClick={() => setTechModalTab('history')}>
+                📚 Case History ({selectedHistory.length})
+              </button>
+              <button type="button" className={`tab-btn ${techModalTab === 'decision' ? 'active' : ''}`} onClick={() => setTechModalTab('decision')}>
+                ⚖️ Decision Guidance
+              </button>
+              <button type="button" className={`tab-btn ${techModalTab === 'graph' ? 'active' : ''}`} onClick={() => setTechModalTab('graph')}>
+                🕸️ Evidence Graph
+              </button>
+            </div>
+
+            {techModalTab === 'work' && (
               <>
-                <div className="card-title mb-3" style={{ fontSize: 14 }}>📋 Status Timeline</div>
-                <div className="wo-timeline">
-                  {selected.statusHistory.map((h: any, i: number) => (
-                    <div key={i} className="wo-timeline-item">
-                      <div className="wo-timeline-dot" />
-                      <div className="wo-timeline-content">
-                        <div className="wo-timeline-status">{h.from_status} → {h.to_status}</div>
-                        <div className="wo-timeline-meta">By {h.changed_by_name} · {formatDate(h.timestamp)}</div>
-                        {h.notes && <div className="wo-timeline-notes">{h.notes}</div>}
-                      </div>
+                {selected.statusHistory?.length > 0 && (
+                  <>
+                    <div className="card-title mb-3" style={{ fontSize: 14 }}>📋 Status Timeline</div>
+                    <div className="wo-timeline">
+                      {selected.statusHistory.map((h: any, i: number) => (
+                        <div key={i} className="wo-timeline-item">
+                          <div className="wo-timeline-dot" />
+                          <div className="wo-timeline-content">
+                            <div className="wo-timeline-status">{h.from_status} → {h.to_status}</div>
+                            <div className="wo-timeline-meta">By {h.changed_by_name} · {formatDate(h.timestamp)}</div>
+                            {h.notes && <div className="wo-timeline-notes">{h.notes}</div>}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </>
+                )}
+
+                <div className="divider" />
+
+                {selected.status === 'ASSIGNED' && (
+                  <div>
+                    <div className="card-title mb-4" style={{ fontSize: 14 }}>⚡ Actions</div>
+                    <button className="btn btn-primary" onClick={() => updateStatus('IN_PROGRESS')} disabled={actionLoading}>
+                      {actionLoading ? <Spinner /> : '▶️ Start Work'}
+                    </button>
+                  </div>
+                )}
+
+                {selected.status === 'IN_PROGRESS' && (
+                  <div>
+                    <div className="card-title mb-4" style={{ fontSize: 14 }}>📝 Submit Resolution</div>
+                    <div className="form-group">
+                      <label className="form-label">Findings (optional)</label>
+                      <textarea className="form-control" rows={2} value={findings} onChange={e => setFindings(e.target.value)} placeholder="Technical findings and observations…" />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label required">Resolution Summary</label>
+                      <textarea className="form-control" rows={3} value={resolutionSummary} onChange={e => setResolutionSummary(e.target.value)} placeholder="Describe what was done to fix the issue…" />
+                    </div>
+                    <button className="btn btn-success" onClick={() => updateStatus('RESOLVED', { findings, resolutionSummary })} disabled={!resolutionSummary.trim() || actionLoading}>
+                      {actionLoading ? <Spinner /> : '✅ Submit Resolution'}
+                    </button>
+                  </div>
+                )}
+
+                {['RESOLVED', 'VERIFIED_CLOSED'].includes(selected.status) && (
+                  <div className="alert alert-success">
+                    {selected.status === 'RESOLVED' ? '✅ Resolution submitted — awaiting supervisor verification.' : '🎉 Work order verified and closed!'}
+                    {selected.resolution_summary && <div style={{ marginTop: 4 }}>Resolution: {selected.resolution_summary}</div>}
+                  </div>
+                )}
               </>
             )}
 
-            <div className="divider" />
-
-            {selected.status === 'ASSIGNED' && (
-              <div>
-                <div className="card-title mb-4" style={{ fontSize: 14 }}>⚡ Actions</div>
-                <button className="btn btn-primary" onClick={() => updateStatus('IN_PROGRESS')} disabled={actionLoading}>
-                  {actionLoading ? <Spinner /> : '▶️ Start Work'}
-                </button>
+            {techModalTab === 'history' && (
+              <div className="card" style={{ background: 'var(--bg-elevated)' }}>
+                <div className="card-header" style={{ marginBottom: 'var(--space-3)' }}>
+                  <div>
+                    <div className="card-title" style={{ fontSize: 14 }}>🕑 Machine Maintenance History</div>
+                    <div className="card-subtitle">Verified past repairs on {selected.machine_name} and similar equipment — for reference only</div>
+                  </div>
+                </div>
+                {selectedHistory.length === 0 ? (
+                  <EmptyState icon="📚" title="No history found" desc="No previous verified repairs for this equipment." />
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+                    {selectedHistory.map((h: any, i: number) => (
+                      <div key={i} style={{
+                        background: 'var(--bg-card)',
+                        border: h.isSameMachine ? '1px solid rgba(99,102,241,0.3)' : '1px solid var(--border-subtle)',
+                        borderRadius: 'var(--radius-md)',
+                        padding: 'var(--space-4)',
+                      }}>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6, flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: h.isSameMachine ? 'var(--brand-primary-light)' : 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                            {h.isSameMachine ? '✓ Same Machine' : 'Similar Equipment'}
+                          </span>
+                          <span className={`badge ${getStatusBadgeClass('VERIFIED_CLOSED')}`} style={{ fontSize: 10 }}>VERIFIED CLOSED</span>
+                          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{h.reportNumber} · {h.workOrderNumber}</span>
+                        </div>
+                        <div style={{ fontSize: 13, color: 'var(--text-primary)', marginBottom: 4 }}>{h.symptomText}</div>
+                        {h.technicianFindings && (
+                          <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4 }}>
+                            <strong>Findings:</strong> {h.technicianFindings}
+                          </div>
+                        )}
+                        {h.resolutionSummary && (
+                          <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                            <strong>Resolution:</strong> {h.resolutionSummary}
+                          </div>
+                        )}
+                        {h.verifiedAt && (
+                          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>
+                            Verified: {formatDate(h.verifiedAt)}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
-            {selected.status === 'IN_PROGRESS' && (
-              <div>
-                <div className="card-title mb-4" style={{ fontSize: 14 }}>📝 Submit Resolution</div>
-                <div className="form-group">
-                  <label className="form-label">Findings (optional)</label>
-                  <textarea className="form-control" rows={2} value={findings} onChange={e => setFindings(e.target.value)} placeholder="Technical findings and observations…" />
-                </div>
-                <div className="form-group">
-                  <label className="form-label required">Resolution Summary</label>
-                  <textarea className="form-control" rows={3} value={resolutionSummary} onChange={e => setResolutionSummary(e.target.value)} placeholder="Describe what was done to fix the issue…" />
-                </div>
-                <button className="btn btn-success" onClick={() => updateStatus('RESOLVED', { findings, resolutionSummary })} disabled={!resolutionSummary.trim() || actionLoading}>
-                  {actionLoading ? <Spinner /> : '✅ Submit Resolution'}
-                </button>
-              </div>
+            {techModalTab === 'decision' && (
+              <DecisionSupportPanel data={techDecisionSupport} loading={techDsLoading} />
             )}
 
-            {['RESOLVED', 'VERIFIED_CLOSED'].includes(selected.status) && (
-              <div className="alert alert-success">
-                {selected.status === 'RESOLVED' ? '✅ Resolution submitted — awaiting supervisor verification.' : '🎉 Work order verified and closed!'}
-                {selected.resolution_summary && <div style={{ marginTop: 4 }}>Resolution: {selected.resolution_summary}</div>}
-              </div>
+            {techModalTab === 'graph' && (
+              <EvidenceGraphPanel data={techEvidenceGraph} loading={techEgLoading} />
             )}
           </div>
         )}

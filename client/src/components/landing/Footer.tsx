@@ -25,7 +25,7 @@ export const Footer: React.FC<FooterProps> = ({
             <span className="nav-brand-dot" />
           </a>
           <p className="footer-desc">
-            Multilingual AI-assisted industrial maintenance platform transforming factory floor verbal reports into structured, traceable, and human-approved work orders.
+            Evidence-driven industrial maintenance intelligence platform connecting worker-reported faults with historical records, explainable repair-versus-replacement options, and verified outcomes.
           </p>
           <div style={{ marginTop: '16px', fontSize: '0.8125rem', color: 'var(--foreground-muted)' }}>
             Crafted with ❤️ by <strong style={{ color: 'var(--foreground-ink)' }}>Team Sudarshan</strong>

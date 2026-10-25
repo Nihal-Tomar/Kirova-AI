@@ -241,11 +241,11 @@ export async function extractReport(req: Request, res: Response): Promise<void> 
     ]
   );
 
-  // 5. Retrieve Grounded Historical Records
-  const history = await historyService.retrieveForMachine(
-    disambiguation.machineId,
-    extracted.symptom_category
-  );
+  // Historical maintenance evidence is supervisor-only until a work order is
+  // approved and assigned to a technician.
+  const history = user.role === "SUPERVISOR"
+    ? await historyService.retrieveForMachine(disambiguation.machineId, extracted.symptom_category)
+    : [];
 
   res.json({
     id,
@@ -348,7 +348,9 @@ export async function clarifyReport(req: Request, res: Response): Promise<void> 
     reason: "Worker submitted clarification response"
   });
 
-  const history = await historyService.retrieveForMachine(machineId, inc.symptom_category);
+  const history = user.role === "SUPERVISOR"
+    ? await historyService.retrieveForMachine(machineId, inc.symptom_category)
+    : [];
 
   res.json({
     id,
@@ -383,6 +385,43 @@ export async function getReportById(req: Request, res: Response): Promise<void> 
   }
 
   const inc = incRes.rows[0];
+
+  // For technicians: they may only view a report if they submitted it, OR if they
+  // are the assigned technician on the linked work order.
+  if (user.role === "REPORTER_TECHNICIAN") {
+    const isReporter = inc.reporter_id === user.id;
+
+    // Check if a work order exists for this incident and this technician is assigned
+    const assignedWoRes = await db.query(
+      "SELECT id FROM work_orders WHERE incident_id = $1 AND assigned_technician_id = $2",
+      [id, user.id]
+    );
+    const isAssignedTechnician = assignedWoRes.rows.length > 0;
+
+    if (!isReporter && !isAssignedTechnician) {
+      res.status(403).json({
+        error: "CASE_ACCESS_DENIED",
+        message: "You do not have access to this report. Access is granted to the reporter and the assigned technician only."
+      });
+      return;
+    }
+
+    // History is only visible to the assigned technician, not to any unrelated reporter
+    const evidence = await evidenceService.getEvidenceForIncident(id);
+    const history = isAssignedTechnician
+      ? await historyService.retrieveForMachine(inc.machine_id, inc.symptom_category)
+      : [];
+
+    res.json({
+      ...inc,
+      missing_fields: inc.missing_fields ? JSON.parse(inc.missing_fields) : [],
+      evidence,
+      groundedHistory: history
+    });
+    return;
+  }
+
+  // Supervisors: full access including history
   const evidence = await evidenceService.getEvidenceForIncident(id);
   const history = await historyService.retrieveForMachine(inc.machine_id, inc.symptom_category);
 
@@ -407,6 +446,13 @@ export async function getReports(req: Request, res: Response): Promise<void> {
     WHERE i.organization_id = $1
   `;
   const params: any[] = [user.organizationId];
+
+  // Technicians/Workers see only reports they submitted.
+  // Supervisors see all reports in the organization.
+  if (user.role === "REPORTER_TECHNICIAN") {
+    queryStr += ` AND i.reporter_id = $${params.length + 1}`;
+    params.push(user.id);
+  }
 
   if (status) {
     params.push(status);

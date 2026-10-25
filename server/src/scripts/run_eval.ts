@@ -1,5 +1,6 @@
 import { execute30CaseBenchmark } from "../controllers/evaluation";
 import { db } from "../db/index";
+import { seedDatabase } from "./seed";
 
 async function main() {
   console.log("================================================================================");
@@ -7,6 +8,14 @@ async function main() {
   console.log("================================================================================\n");
 
   await db.init();
+  try {
+    const userCount = await db.query("SELECT COUNT(*) as count FROM users");
+    if (parseInt(userCount.rows[0].count, 10) === 0) {
+      await seedDatabase();
+    }
+  } catch {
+    await seedDatabase();
+  }
   const report = await execute30CaseBenchmark();
 
   console.log(`Evaluated ${report.totalCases} unique reports across Hindi, Hinglish, and English.\n`);

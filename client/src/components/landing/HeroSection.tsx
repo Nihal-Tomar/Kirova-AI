@@ -17,19 +17,19 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         {/* Eyebrow */}
         <div className="hero-eyebrow">
           <span className="hero-eyebrow-sparkle">✨</span>
-          <span>YOUR AI-POWERED WORKSPACE</span>
+          <span>EVIDENCE-DRIVEN MAINTENANCE INTELLIGENCE</span>
         </div>
 
         {/* Editorial Serif Display Headline with Italic */}
         <h1 className="hero-heading">
-          From voice to <br />
-          <em className="serif-italic">verified action.</em>
+          Every machine fault has a history. <br />
+          <em className="serif-italic">Kirova helps you use it.</em>
         </h1>
 
         {/* Subtitle */}
         <p className="hero-subtext">
-          Turn conversations, operational knowledge, and everyday requests into clear,
-          structured actions with Kirova AI.
+          Connect worker-reported faults with historical maintenance records, traceable evidence,
+          and explainable repair options—so teams can understand recurring failures and make better-informed maintenance decisions.
         </p>
 
         {/* Action Buttons */}
@@ -40,7 +40,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             onClick={onLaunchStudio}
           >
             <span>▷</span>
-            <span>Launch Studio</span>
+            <span>Explore Maintenance Intelligence</span>
           </button>
 
           <button
@@ -48,14 +48,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             className="btn-hero-secondary"
             onClick={onExploreTour}
           >
-            <span>Explore Product Tour</span>
+            <span>See How It Works</span>
             <span>↓</span>
           </button>
         </div>
 
         {/* Capability Line */}
         <div className="hero-capability-line">
-          Voice input · Intelligent workflows · Verified actions · Team collaboration
+          Fault reporting · Historical evidence · Repair vs replace analysis · Verified outcomes
         </div>
 
         {/* Audio Waveform Capsule (Matching Reference Screenshot 1) */}

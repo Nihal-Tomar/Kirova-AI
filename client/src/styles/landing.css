@@ -4,30 +4,32 @@
    ========================================================================== */
 
 :root {
-  /* Core Color Tokens */
-  --background-cream: #F7F1E7;
-  --background-paper: #FFFDF8;
-  --background-card-warm: #FBF7F0;
+  /* Core Color Tokens — Pearl White + Royal Blue + Soft Lavender */
+  --background-cream: #FDFCF7;
+  --background-paper: #FFFFFF;
+  --background-card-warm: #F7F6FB;
   --foreground-ink: #24212A;
   --foreground-muted: #706D75;
   --foreground-subtle: #96939C;
 
-  /* Dark Teal / Midnight Tokens */
-  --background-dark: #111329;
-  --background-teal: #063F46;
-  --background-teal-dark: #04272C;
-  --background-teal-card: #084D55;
-  --background-teal-card-dark: #032125;
-  --foreground-on-dark: #E6F7F5;
-  --foreground-on-dark-muted: #8EB7BD;
+  /* Royal Blue dark-section system (formerly teal) */
+  --background-dark: #161D3D;
+  --background-teal: #243B80;
+  --background-teal-dark: #1A2A5C;
+  --background-teal-card: #2E4A95;
+  --background-teal-card-dark: #16224A;
+  --foreground-on-dark: #ECEFF8;
+  --foreground-on-dark-muted: #A6B8D8;
 
   /* Accent Tokens */
-  --accent-mint: #55E7B0;
-  --accent-mint-glow: rgba(85, 231, 176, 0.35);
-  --accent-lavender: #D9CCFF;
-  --accent-lavender-hover: #C8B6FF;
-  --accent-lavender-soft: #F2EEFF;
-  --accent-purple: #7C5CFC;
+  --accent-mint: #C9B8FF;             /* Soft Lavender — dark-section accent (repurposed from mint green) */
+  --accent-mint-glow: rgba(201, 184, 255, 0.40);
+  --accent-lavender: #C9B8FF;         /* Soft Lavender — restrained accent */
+  --accent-lavender-hover: #B3A0FF;
+  --accent-lavender-soft: #F3F0FF;
+  --accent-purple: #243B80;           /* Royal Blue — primary brand / emphasis */
+  --accent-purple-hover: #2E4A95;    /* lighter royal blue for primary-button hover */
+  --status-success: #2FB87A;         /* semantic green for operational status indicators */
 
   /* Borders & Shadows */
   --border-light: rgba(36, 33, 42, 0.10);
@@ -89,7 +91,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  background: rgba(255, 253, 248, 0.94);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--border-light);
@@ -102,7 +104,7 @@
 }
 
 .landing-navbar-scrolled {
-  background: rgba(255, 253, 248, 0.98);
+  background: rgba(255, 255, 255, 0.98);
   box-shadow: 0 12px 40px rgba(36, 33, 42, 0.12);
   top: 14px;
 }
@@ -128,9 +130,9 @@
 .nav-brand-dot {
   width: 8px;
   height: 8px;
-  background-color: var(--accent-mint);
+  background-color: var(--status-success);
   border-radius: 50%;
-  box-shadow: 0 0 10px var(--accent-mint-glow);
+  box-shadow: 0 0 10px rgba(47, 184, 122, 0.45);
   display: inline-block;
   animation: pulse-dot 2.5s infinite ease-in-out;
 }
@@ -182,7 +184,7 @@
   font-weight: 700;
   text-transform: uppercase;
   background: var(--accent-lavender);
-  color: #432874;
+  color: #243B80;
   padding: 1px 6px;
   border-radius: 9999px;
   letter-spacing: 0.04em;
@@ -220,22 +222,22 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background-color: var(--accent-lavender);
-  color: var(--foreground-ink);
+  background-color: var(--accent-purple);
+  color: #FFFFFF;
   padding: 8px 18px;
   border-radius: 9999px;
   font-size: 0.84375rem;
   font-weight: 600;
   text-decoration: none;
-  border: 1px solid rgba(124, 92, 252, 0.2);
+  border: 1px solid rgba(36, 59, 128, 0.2);
   transition: all 0.2s ease;
   cursor: pointer;
 }
 
 .btn-nav-launch:hover {
-  background-color: var(--accent-lavender-hover);
+  background-color: var(--accent-purple-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(124, 92, 252, 0.2);
+  box-shadow: 0 4px 14px rgba(36, 59, 128, 0.28);
 }
 
 .nav-signin-link {
@@ -262,7 +264,7 @@
   font-size: 0.84375rem;
   font-weight: 600;
   text-decoration: none;
-  border: 1px solid rgba(124, 92, 252, 0.15);
+  border: 1px solid rgba(201, 184, 255, 0.4);
   transition: all 0.2s ease;
   cursor: pointer;
 }
@@ -305,7 +307,7 @@
   transform: translateX(-50%);
   width: 700px;
   height: 400px;
-  background: radial-gradient(circle, rgba(217, 204, 255, 0.45) 0%, rgba(247, 241, 231, 0) 70%);
+  background: radial-gradient(circle, rgba(201, 184, 255, 0.40) 0%, rgba(253, 252, 247, 0) 70%);
   filter: blur(60px);
   pointer-events: none;
   z-index: 0;
@@ -377,23 +379,23 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background-color: var(--accent-lavender);
-  color: var(--foreground-ink);
+  background-color: var(--accent-purple);
+  color: #FFFFFF;
   padding: 14px 34px;
   border-radius: 9999px;
   font-size: 1.0625rem;
   font-weight: 600;
   text-decoration: none;
-  border: 1px solid rgba(124, 92, 252, 0.25);
-  box-shadow: 0 6px 20px rgba(124, 92, 252, 0.15);
+  border: 1px solid rgba(36, 59, 128, 0.25);
+  box-shadow: 0 6px 20px rgba(36, 59, 128, 0.22);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
 }
 
 .btn-hero-primary:hover {
-  background-color: var(--accent-lavender-hover);
+  background-color: var(--accent-purple-hover);
   transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(124, 92, 252, 0.25);
+  box-shadow: 0 8px 28px rgba(36, 59, 128, 0.32);
 }
 
 .btn-hero-secondary {
@@ -478,7 +480,7 @@
    ========================================================================== */
 .tour-section {
   position: relative;
-  background: radial-gradient(circle at 50% 0%, #0A4F57 0%, var(--background-teal) 45%, var(--background-teal-dark) 100%);
+  background: radial-gradient(circle at 50% 0%, #2E4A95 0%, var(--background-teal) 45%, var(--background-teal-dark) 100%);
   color: var(--foreground-on-dark);
   padding: 100px 24px 120px;
   overflow: hidden;
@@ -495,7 +497,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-  background: rgba(3, 33, 37, 0.7);
+  background: rgba(22, 34, 74, 0.7);
   padding: 6px;
   border-radius: 9999px;
   border: 1px solid var(--border-dark);
@@ -532,7 +534,7 @@
   font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
-  background: rgba(85, 231, 176, 0.2);
+  background: rgba(201, 184, 255, 0.18);
   color: var(--accent-mint);
   padding: 2px 7px;
   border-radius: 9999px;
@@ -591,7 +593,7 @@
 }
 
 .tour-card-traditional {
-  background: rgba(3, 27, 30, 0.6);
+  background: rgba(18, 30, 70, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 24px;
   padding: 36px;
@@ -601,8 +603,8 @@
 }
 
 .tour-card-future {
-  background: rgba(6, 63, 70, 0.75);
-  border: 1px solid rgba(85, 231, 176, 0.3);
+  background: rgba(46, 74, 149, 0.75);
+  border: 1px solid rgba(201, 184, 255, 0.3);
   border-radius: 24px;
   padding: 36px;
   display: flex;
@@ -640,13 +642,13 @@
 }
 
 .tour-pill-rag {
-  background: rgba(85, 231, 176, 0.15);
+  background: rgba(201, 184, 255, 0.15);
   color: var(--accent-mint);
   font-size: 0.6875rem;
   font-weight: 700;
   padding: 3px 9px;
   border-radius: 9999px;
-  border: 1px solid rgba(85, 231, 176, 0.25);
+  border: 1px solid rgba(201, 184, 255, 0.25);
 }
 
 .tour-card-stat {
@@ -735,7 +737,7 @@
 
 /* Interactive UI Mockup (like screenshot 2) */
 .tour-mockup-container {
-  background: rgba(4, 33, 37, 0.85);
+  background: rgba(20, 32, 72, 0.85);
   border: 1px solid var(--border-dark);
   border-radius: 24px;
   padding: 24px;
@@ -828,8 +830,8 @@
 
 /* Right Panel: Kirova Side Panel */
 .mockup-side-panel {
-  background: rgba(6, 45, 50, 0.9);
-  border: 1px solid rgba(85, 231, 176, 0.25);
+  background: rgba(30, 52, 110, 0.9);
+  border: 1px solid rgba(201, 184, 255, 0.25);
   border-radius: 16px;
   padding: 20px;
   display: flex;
@@ -886,8 +888,8 @@
 }
 
 .mockup-response-box {
-  background: rgba(3, 27, 30, 0.8);
-  border: 1px solid rgba(85, 231, 176, 0.3);
+  background: rgba(18, 30, 70, 0.8);
+  border: 1px solid rgba(201, 184, 255, 0.3);
   border-radius: 12px;
   padding: 16px;
 }
@@ -936,8 +938,8 @@
   border-radius: 6px;
   letter-spacing: 0.02em;
 }
-.evidence-tag.extracted { background: rgba(85, 231, 176, 0.15); color: var(--accent-mint); border: 1px solid rgba(85, 231, 176, 0.3); }
-.evidence-tag.retrieved { background: rgba(124, 92, 252, 0.2); color: var(--accent-lavender); border: 1px solid rgba(124, 92, 252, 0.3); }
+.evidence-tag.extracted { background: rgba(201, 184, 255, 0.15); color: var(--accent-mint); border: 1px solid rgba(201, 184, 255, 0.3); }
+.evidence-tag.retrieved { background: rgba(201, 184, 255, 0.18); color: var(--accent-lavender); border: 1px solid rgba(201, 184, 255, 0.3); }
 .evidence-tag.grounded { background: rgba(255, 189, 46, 0.15); color: #FFBD2E; border: 1px solid rgba(255, 189, 46, 0.3); }
 
 /* ==========================================================================
@@ -1081,7 +1083,7 @@
 .cap-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-float);
-  border-color: rgba(124, 92, 252, 0.3);
+  border-color: rgba(36, 59, 128, 0.3);
 }
 
 .cap-icon-box {
@@ -1095,7 +1097,7 @@
   color: var(--foreground-ink);
   font-size: 1.4rem;
   margin-bottom: 20px;
-  border: 1px solid rgba(124, 92, 252, 0.15);
+  border: 1px solid rgba(201, 184, 255, 0.4);
 }
 
 .cap-title {
@@ -1364,7 +1366,7 @@
    SECTION F — FINAL CTA (DARK TEAL SECTION)
    ========================================================================== */
 .final-cta-section {
-  background: radial-gradient(circle at 50% 50%, #084D55 0%, var(--background-teal-dark) 100%);
+  background: radial-gradient(circle at 50% 50%, #2E4A95 0%, var(--background-teal-dark) 100%);
   color: #FFF;
   padding: 110px 24px;
   text-align: center;
@@ -1598,8 +1600,8 @@
   height: 500px;
   background: radial-gradient(
     circle,
-    rgba(217, 204, 255, 0.45) 0%,
-    rgba(247, 241, 231, 0) 68%
+    rgba(201, 184, 255, 0.40) 0%,
+    rgba(253, 252, 247, 0) 68%
   );
   filter: blur(60px);
   pointer-events: none;
@@ -1612,7 +1614,7 @@
   z-index: 1;
   width: 100%;
   max-width: 460px;
-  background: var(--background-dark);  /* #111329 */
+  background: var(--background-dark);  /* deep navy-blue (Royal Blue family) */
   border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 28px;
   padding: 44px 44px 36px;
@@ -1636,7 +1638,7 @@
   gap: 6px;
   background: transparent;
   border: none;
-  color: var(--foreground-on-dark-muted);  /* #8EB7BD */
+  color: var(--foreground-on-dark-muted);  /* muted blue-gray on dark */
   font-size: 0.8125rem;
   font-weight: 500;
   cursor: pointer;
@@ -1664,9 +1666,9 @@
   align-items: center;
   justify-content: center;
   margin: 0 auto 16px;
-  background: #0F1124;
+  background: #121A3A;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 20px rgba(85, 231, 176, 0.12);
+  box-shadow: 0 4px 20px rgba(201, 184, 255, 0.18);
 }
 
 /* Wordmark — mirrors nav-brand-link exactly */
@@ -1762,7 +1764,7 @@
 
 .kirova-form-control:focus {
   border-color: var(--accent-mint);
-  box-shadow: 0 0 0 3px rgba(85, 231, 176, 0.12);
+  box-shadow: 0 0 0 3px rgba(201, 184, 255, 0.18);
 }
 
 .kirova-form-control[aria-invalid="true"] {
@@ -1781,9 +1783,9 @@
   justify-content: center;
   gap: 10px;
   width: 100%;
-  background-color: var(--accent-lavender);   /* #D9CCFF */
-  color: var(--foreground-ink);               /* #24212A */
-  border: 1px solid rgba(124, 92, 252, 0.25);
+  background-color: var(--accent-purple);   /* Royal Blue primary action */
+  color: #FFFFFF;
+  border: 1px solid rgba(36, 59, 128, 0.25);
   border-radius: 9999px;
   padding: 13px 28px;
   font-size: 1rem;
@@ -1792,14 +1794,14 @@
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   margin-top: 8px;
-  box-shadow: 0 4px 16px rgba(124, 92, 252, 0.18);
+  box-shadow: 0 4px 16px rgba(36, 59, 128, 0.22);
   letter-spacing: -0.01em;
 }
 
 .kirova-login-submit:hover:not(:disabled) {
-  background-color: var(--accent-lavender-hover);
+  background-color: var(--accent-purple-hover);
   transform: translateY(-1px);
-  box-shadow: 0 6px 22px rgba(124, 92, 252, 0.28);
+  box-shadow: 0 6px 22px rgba(36, 59, 128, 0.32);
 }
 
 .kirova-login-submit:focus-visible {
@@ -1818,8 +1820,8 @@
   display: inline-block;
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(36, 33, 42, 0.25);
-  border-top-color: var(--foreground-ink);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #FFFFFF;
   border-radius: 50%;
   animation: kirova-spin 0.7s linear infinite;
   flex-shrink: 0;

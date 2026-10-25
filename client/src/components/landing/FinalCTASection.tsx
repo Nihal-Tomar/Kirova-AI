@@ -13,13 +13,12 @@ export const FinalCTASection: React.FC<FinalCTASectionProps> = ({
     <section className="final-cta-section">
       <div className="final-cta-content">
         <h2 className="final-cta-heading">
-          Ready to turn intent into <br />
-          <em className="serif-italic">verified action?</em>
+          Ready to turn fault reports into <br />
+          <em className="serif-italic">traceable maintenance decisions?</em>
         </h2>
 
         <p className="final-cta-subtext">
-          Bring your maintenance workflow into a structured, accountable, and transparent workspace.
-          Zero lost reports. 100% human-verified closure.
+          Connect worker-reported faults with historical records, explainable repair-versus-replacement options, and verified outcomes. Zero guesswork. 100% source-traceable maintenance history.
         </p>
 
         <div className="final-cta-buttons">
@@ -29,7 +28,7 @@ export const FinalCTASection: React.FC<FinalCTASectionProps> = ({
             onClick={onLaunchStudio}
           >
             <span>▷</span>
-            <span>Launch Studio</span>
+            <span>Explore Maintenance Intelligence</span>
           </button>
 
           <button

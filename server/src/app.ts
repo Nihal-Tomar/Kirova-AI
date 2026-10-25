@@ -97,12 +97,15 @@ export function createApp(): express.Application {
   app.post("/api/work-orders/:id/verify-close", requireAuth, requireRole(["SUPERVISOR"]), workOrdersCtrl.verifyCloseWorkOrder);
   app.get("/api/work-orders", requireAuth, workOrdersCtrl.getWorkOrders);
   app.get("/api/work-orders/assigned", requireAuth, workOrdersCtrl.getAssignedWorkOrders);
+  app.get("/api/work-orders/:id/history", requireAuth, workOrdersCtrl.getWorkOrderHistory);
   app.get("/api/work-orders/:id", requireAuth, workOrdersCtrl.getWorkOrderById);
 
   // --- Intelligence & Asset History Routes ---
   app.get("/api/machines/:id/history", requireAuth, intelCtrl.getMachineHistory);
   app.get("/api/machines", requireAuth, intelCtrl.getMachines);
   app.get("/api/graph/recurring", requireAuth, intelCtrl.getRecurringFaults);
+  app.get("/api/incidents/:id/decision-support", requireAuth, intelCtrl.getIncidentDecisionSupport);
+  app.get("/api/incidents/:id/evidence-graph", requireAuth, intelCtrl.getIncidentEvidenceGraph);
   app.get("/api/dashboard", requireAuth, requireRole(["SUPERVISOR"]), intelCtrl.getDashboardMetrics);
   app.get("/api/audit-logs", requireAuth, requireRole(["SUPERVISOR"]), intelCtrl.getAuditLogsController);
 

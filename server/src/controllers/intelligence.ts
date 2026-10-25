@@ -1,11 +1,13 @@
 import { Request, Response } from "express";
 import { db } from "../db/index";
-import { historyService } from "../services/history";
-import { getAuditLogs } from "../services/audit";
+import { historyService } from "../services/history.js";
+import { getAuditLogs } from "../services/audit.js";
+import { decisionSupportService } from "../services/decisionSupport.js";
 
 export async function getMachineHistory(req: Request, res: Response): Promise<void> {
   const { id } = req.params;
   const { symptomCategory } = req.query;
+  const user = req.user!;
 
   const mchRes = await db.query(
     "SELECT id, asset_tag, name, type, model_number, serial_number, location, is_active FROM machines WHERE id = $1",
@@ -14,6 +16,16 @@ export async function getMachineHistory(req: Request, res: Response): Promise<vo
 
   if (mchRes.rows.length === 0) {
     res.status(404).json({ error: "NOT_FOUND", message: "Machine not found" });
+    return;
+  }
+
+  // This endpoint has no case identifier, so it cannot safely scope history to a
+  // technician's assigned case. Technicians use GET /work-orders/:id/history.
+  if (user.role === "REPORTER_TECHNICIAN") {
+    res.status(403).json({
+      error: "CASE_ACCESS_DENIED",
+      message: "Use the assigned work order history endpoint to access case maintenance history."
+    });
     return;
   }
 
@@ -113,3 +125,24 @@ export async function getMachines(req: Request, res: Response): Promise<void> {
   );
   res.json({ machines: resMch.rows });
 }
+
+export async function getIncidentDecisionSupport(req: Request, res: Response): Promise<void> {
+  const { id } = req.params;
+  const report = await decisionSupportService.evaluateIncident(id);
+  if (!report) {
+    res.status(404).json({ error: "NOT_FOUND", message: "Incident not found" });
+    return;
+  }
+  res.json(report);
+}
+
+export async function getIncidentEvidenceGraph(req: Request, res: Response): Promise<void> {
+  const { id } = req.params;
+  const graph = await decisionSupportService.buildEvidenceGraph(id);
+  if (!graph) {
+    res.status(404).json({ error: "NOT_FOUND", message: "Incident not found" });
+    return;
+  }
+  res.json(graph);
+}
+

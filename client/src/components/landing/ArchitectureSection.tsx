@@ -100,52 +100,52 @@ export const ArchitectureSection: React.FC = () => {
 
         {/* Small Architecture Flow Diagram */}
         <div className="arch-diagram-card">
-          <div className="arch-diagram-title">END-TO-END VERIFIED PIPELINE</div>
+          <div className="arch-diagram-title">END-TO-END EVIDENCE & DECISION PIPELINE</div>
           <div className="arch-pipeline-flow">
             <div className="pipeline-node">
               <div className="pipeline-node-icon">🎙️</div>
-              <div className="pipeline-node-label">OPERATOR INPUT</div>
+              <div className="pipeline-node-label">WORKER REPORT</div>
               <div className="pipeline-node-sub">Voice or Text</div>
             </div>
 
             <div className="pipeline-arrow">→</div>
 
             <div className="pipeline-node">
-              <div className="pipeline-node-icon">🧠</div>
-              <div className="pipeline-node-label">INTENT & CONTEXT</div>
-              <div className="pipeline-node-sub">Sarvam / Whisper</div>
+              <div className="pipeline-node-icon">🕑</div>
+              <div className="pipeline-node-label">HISTORY RETRIEVAL</div>
+              <div className="pipeline-node-sub">Asset History & Recurrence</div>
             </div>
 
             <div className="pipeline-arrow">→</div>
 
             <div className="pipeline-node">
-              <div className="pipeline-node-icon">🔍</div>
-              <div className="pipeline-node-label">VALIDATION GATE</div>
-              <div className="pipeline-node-sub">Evidence Grounding</div>
+              <div className="pipeline-node-icon">⚖️</div>
+              <div className="pipeline-node-label">DECISION SUPPORT</div>
+              <div className="pipeline-node-sub">4-Way Repair Analysis</div>
             </div>
 
             <div className="pipeline-arrow">→</div>
 
             <div className="pipeline-node">
               <div className="pipeline-node-icon">✅</div>
-              <div className="pipeline-node-label">SUPERVISOR SIGN-OFF</div>
-              <div className="pipeline-node-sub">Approval Gate</div>
+              <div className="pipeline-node-label">SUPERVISOR ASSIGN</div>
+              <div className="pipeline-node-sub">Case Gate & Approval</div>
             </div>
 
             <div className="pipeline-arrow">→</div>
 
             <div className="pipeline-node">
-              <div className="pipeline-node-icon">📦</div>
-              <div className="pipeline-node-label">WORK ORDER FSM</div>
-              <div className="pipeline-node-sub">Assigned to Tech</div>
+              <div className="pipeline-node-icon">🔧</div>
+              <div className="pipeline-node-label">TECH EXECUTION</div>
+              <div className="pipeline-node-sub">Assigned Case History</div>
             </div>
 
             <div className="pipeline-arrow">→</div>
 
             <div className="pipeline-node" style={{ borderColor: 'var(--accent-mint)' }}>
               <div className="pipeline-node-icon">🔒</div>
-              <div className="pipeline-node-label">IMMUTABLE LOG</div>
-              <div className="pipeline-node-sub">PostgreSQL Trigger</div>
+              <div className="pipeline-node-label">VERIFIED OUTCOME</div>
+              <div className="pipeline-node-sub">Feeds Future Base</div>
             </div>
           </div>
         </div>

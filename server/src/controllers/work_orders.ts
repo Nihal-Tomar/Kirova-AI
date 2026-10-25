@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import crypto from "crypto";
 import { db } from "../db/index";
 import { logAuditEvent } from "../services/audit";
+import { historyService } from "../services/history";
 
 export async function createWorkOrder(req: Request, res: Response): Promise<void> {
   const { incidentId, priority = "MEDIUM" } = req.body;
@@ -311,7 +312,7 @@ export async function assignWorkOrder(req: Request, res: Response): Promise<void
 
   // Verify technician exists in same organization
   const techRes = await db.query(
-    "SELECT id, name, role FROM users WHERE id = $1 AND organization_id = $2",
+    "SELECT id, name, role FROM users WHERE id = $1 AND organization_id = $2 AND role = 'REPORTER_TECHNICIAN'",
     [technicianId, user.organizationId]
   );
 
@@ -584,14 +585,22 @@ export async function getWorkOrders(req: Request, res: Response): Promise<void> 
   `;
   const params: any[] = [user.organizationId];
 
+  // Technicians see only work orders assigned to them.
+  // Supervisors see all work orders in the organization (optionally filtered).
+  if (user.role === "REPORTER_TECHNICIAN") {
+    queryStr += ` AND wo.assigned_technician_id = $${params.length + 1}`;
+    params.push(user.id);
+  } else {
+    // Supervisor: allow optional filter by specific technician
+    if (technicianId) {
+      params.push(technicianId);
+      queryStr += ` AND wo.assigned_technician_id = $${params.length}`;
+    }
+  }
+
   if (status) {
     params.push(status);
     queryStr += ` AND wo.status = $${params.length}`;
-  }
-
-  if (technicianId) {
-    params.push(technicianId);
-    queryStr += ` AND wo.assigned_technician_id = $${params.length}`;
   }
 
   queryStr += " ORDER BY wo.created_at DESC LIMIT 50";
@@ -648,6 +657,18 @@ export async function getWorkOrderById(req: Request, res: Response): Promise<voi
     return;
   }
 
+  const wo = woRes.rows[0];
+
+  // Case-level access: technicians may only view work orders assigned to them.
+  // Supervisors have full read access within the organization.
+  if (user.role === "REPORTER_TECHNICIAN" && wo.assigned_technician_id !== user.id) {
+    res.status(403).json({
+      error: "CASE_ACCESS_DENIED",
+      message: "You do not have access to this work order. Only the assigned technician or a supervisor may view it."
+    });
+    return;
+  }
+
   const historyRes = await db.query(
     `SELECT h.*, u.name as changed_by_name
      FROM work_order_status_history h
@@ -658,7 +679,76 @@ export async function getWorkOrderById(req: Request, res: Response): Promise<voi
   );
 
   res.json({
-    ...woRes.rows[0],
+    ...wo,
     statusHistory: historyRes.rows
+  });
+}
+
+/**
+ * GET /api/work-orders/:id/history
+ *
+ * Returns the machine maintenance history for the machine attached to this work order.
+ * Access rules:
+ *   - Supervisors: always allowed within their organization.
+ *   - Technicians: only allowed if they are the assigned_technician_id on this work order
+ *     AND the work order has moved past APPROVED (i.e. is ASSIGNED, IN_PROGRESS, RESOLVED,
+ *     RETURNED_FOR_REWORK, or VERIFIED_CLOSED). Pre-assignment access is blocked.
+ */
+export async function getWorkOrderHistory(req: Request, res: Response): Promise<void> {
+  const { id } = req.params;
+  const { symptomCategory } = req.query;
+  const user = req.user!;
+
+  // Fetch the work order and confirm org membership
+  const woRes = await db.query(
+    `SELECT wo.machine_id, wo.assigned_technician_id, wo.status, i.organization_id,
+            i.symptom_category as incident_symptom_category
+     FROM work_orders wo
+     JOIN incidents i ON wo.incident_id = i.id
+     WHERE wo.id = $1 AND i.organization_id = $2`,
+    [id, user.organizationId]
+  );
+
+  if (woRes.rows.length === 0) {
+    res.status(404).json({ error: "NOT_FOUND", message: "Work order not found" });
+    return;
+  }
+
+  const wo = woRes.rows[0];
+
+  // Technician case-level access gate
+  if (user.role === "REPORTER_TECHNICIAN") {
+    if (wo.assigned_technician_id !== user.id) {
+      res.status(403).json({
+        error: "CASE_ACCESS_DENIED",
+        message: "Maintenance history is only accessible to the assigned technician on this work order."
+      });
+      return;
+    }
+
+    // Technicians cannot access history before assignment is confirmed
+    const preAssignmentStatuses = ["AWAITING_APPROVAL", "APPROVED", "REJECTED"];
+    if (preAssignmentStatuses.includes(wo.status)) {
+      res.status(403).json({
+        error: "CASE_ACCESS_DENIED",
+        message: "Maintenance history becomes available after the work order has been assigned to you."
+      });
+      return;
+    }
+  }
+
+  const effectiveCategory = (symptomCategory as string) || wo.incident_symptom_category;
+  const history = await historyService.retrieveForMachine(wo.machine_id, effectiveCategory);
+
+  const machineRes = await db.query(
+    "SELECT id, asset_tag, name, type, model_number, serial_number, location FROM machines WHERE id = $1",
+    [wo.machine_id]
+  );
+
+  res.json({
+    workOrderId: id,
+    machine: machineRes.rows[0] || null,
+    symptomCategoryFilter: effectiveCategory || null,
+    verifiedClosedIncidents: history
   });
 }
