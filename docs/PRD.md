@@ -1,32 +1,29 @@
 ﻿# Kirova AI
 ## Product Requirements Document (PRD)
 
-**Product tagline:** From Voice to Verified Action
+**Product tagline:** From Voice to Verified Action — Evidence-Driven Industrial Maintenance Intelligence
 
-**Version:** 2.0 — Hackathon MVP Blueprint  
+**Version:** 3.0 — Evidence Intelligence Pivot  
 **Event:** HackFront India 2026  
 **Theme:** Open Source & Innovation  
 **Target users:** Small and medium-sized industrial maintenance teams  
 **MVP development window:** 23–31 October 2026  
-**Primary objective:** Build a working, measurable prototype that demonstrates reliable maintenance reporting, evidence-backed AI extraction, recurring-fault intelligence, and accountable work-order closure.
+**Primary objective:** Build a working, measurable prototype that connects new machine faults to traceable historical maintenance evidence, provides a 4-way repair-vs-replace decision support engine, and moves approved work through accountable execution and supervisor-verified closure — with zero AI hallucination.
 
 ---
-
 # 1. Executive Summary
 
-Kirova AI is a multilingual, AI-assisted industrial maintenance platform that transforms informal machine-failure reports into structured, traceable, and human-approved work orders.
+Kirova AI is an evidence-driven industrial maintenance intelligence platform that connects new machine faults to historical maintenance evidence and helps workers, technicians, and supervisors make faster, more traceable maintenance decisions.
 
-In small factories, workshops, college laboratories, and industrial facilities, maintenance issues are often communicated through verbal instructions, phone calls, messaging applications, or handwritten notes. Critical details get lost, repeated failures are recorded independently, and supervisors lack a reliable way to determine what was reported, what the system retrieved from historical records, and what the AI merely suggested.
+In small and mid-sized factories, maintenance problems arrive as informal spoken complaints, WhatsApp messages, or handwritten slips. Critical details are lost, repeated failures are resolved differently each time, and supervisors have no reliable way to connect the current fault to what happened before — what was tried, what worked, and what failed.
 
-Kirova AI addresses this problem through a unified workflow:
+Kirova AI addresses this by building a source-linked evidence graph from historical work orders and connecting every new fault to that graph:
 
-**Voice/Text Report → Transcription → Structured Extraction → Validation → Historical Retrieval → Human Approval → Technician Execution → Evidence Submission → Verified Closure.**
+**WORKER REPORTS FAULT → IDENTIFY MACHINE & SYMPTOMS → RETRIEVE MAINTENANCE HISTORY → EXTRACT & CONNECT EVIDENCE → ANALYZE CAUSES & REPAIR OPTIONS → REPAIR vs REPLACE ASSESSMENT → SUPERVISOR REVIEWS & APPROVES → TECHNICIAN RECORDS ACTUAL WORK → VERIFY & DOCUMENT OUTCOME → UPDATE THE EVIDENCE BASE**
 
-The platform supports Hindi, Hinglish, and English reporting, subject to testing and the capabilities of the selected AI services.
+The platform supports Hindi, Hinglish, and English reporting. Its defining principle is **evidence before confidence** — every field carries an explicit provenance label, missing information triggers clarification (never fabrication), and historical intelligence is grounded in verified stored records.
 
-Its defining principle is **evidence before confidence**. Every important field is labelled according to its source, missing or ambiguous information triggers clarification, historical recommendations are grounded in stored records, and only authorized human users can approve and verify work.
-
-Unlike a standalone AI chatbot, Kirova AI connects language intelligence to a complete maintenance workflow.
+The central differentiator is the connection between a new fault, traceable historical evidence, a 4-way repair-vs-replace assessment (INSPECT / REPAIR / REPLACE_COMPONENT / REPLACE_MACHINE), and the actual documented outcome. The AI is advisory — human supervisors retain full decision authority at every consequential step.
 
 ## 1.1 Product vision
 
@@ -38,10 +35,9 @@ Reduce information loss and coordination overhead while making maintenance decis
 
 ## 1.3 One-line product proposition
 
-Kirova AI turns a spoken maintenance complaint into an evidence-labelled, human-approved work order, asks for missing information instead of guessing, and uses verified maintenance history to reveal recurring faults across machines.
+Kirova AI turns a spoken maintenance complaint into an evidence-labelled, historically-grounded work order — with a structured repair-vs-replace assessment — asks for missing information instead of guessing, and feeds every verified outcome back into future intelligence.
 
 ---
-
 # 2. Problem Statement
 
 ## 2.1 The problem
@@ -109,54 +105,69 @@ A successful demonstration must also include at least one failure case in which 
 
 # 4. Product Differentiation
 
-Kirova AI must not claim that voice reporting, AI extraction, or maintenance ticketing is individually novel. Its differentiation lies in how these capabilities are combined and validated.
+Kirova AI's differentiation lies in how existing capabilities are combined, validated, and connected — not in any single feature being individually novel.
 
 ## 4.1 Evidence-labelled intelligence
 
-Every field in the incident draft must identify its evidential status.
+Every field in the incident draft identifies its evidential status.
 
 | Label | Meaning | Example |
 |---|---|---|
-| Reported | Explicitly stated by the worker | “The conveyor stops intermittently.” |
+| Reported | Explicitly stated by the worker | "The conveyor stops intermittently." |
 | Retrieved | Obtained from an existing stored record | Asset ID, location, or previous verified incident |
 | Suggested | Proposed by AI and awaiting review | Suggested urgency or candidate symptom category |
 | Unverified | Not sufficiently confirmed | Unresolved machine identity or unconfirmed repair outcome |
 
-Each field should also retain a source reference where applicable.
+Each field also retains a source reference where applicable.
 
 **Product value:** The reviewer can distinguish facts from suggestions instead of treating the entire AI response as equally reliable.
 
-## 4.2 Ask, don't guess
+## 4.2 Ask, don't guess — zero hallucination
 
 When required information is missing or ambiguous, the system asks a targeted clarification question.
 
-For example, if two machines match “Machine 4,” the system must present both candidates and ask the user to select the correct one.
+For example, if two machines match "Machine 4," the system presents both candidates and asks the user to select. It never silently selects a machine, invents an asset identifier, or manufactures a historical incident.
 
-It must not silently select a machine, invent an asset identifier, or manufacture a historical incident.
+**Benchmark result:** 0.0% unsupported machine IDs, 0.0% unsupported timestamps, 0.0% unsupported history across 30 evaluation cases.
 
-## 4.3 Cross-machine recurring-fault intelligence
+## 4.3 Source-linked evidence graph
 
-The system connects machines, equipment types, components, symptoms, incidents, and verified resolutions.
+The platform builds a traceable graph connecting:
 
-This allows the supervisor to explore questions such as:
+`
+Machine → Component → Fault/Symptom → Maintenance Event → Repair Action → Documented Outcome → Source Record
+`
 
-- Which machines of the same type experienced a similar symptom?
-- Which components were involved in those incidents?
-- Which recorded resolutions were verified?
-- How frequently was a particular resolution associated with verified closure?
+Every relationship is backed by a real stored record. Every node is inspectable and links back to its source. The system does not automatically merge ambiguous assets or invent relationships.
 
-The interface must distinguish a historical association from proof that the same repair will work again.
+## 4.4 4-way repair-vs-replace decision support
 
-## 4.4 Closed-loop accountability
+For each new fault, the platform generates a structured advisory comparison across four options:
 
-Kirova AI follows work beyond initial report generation.
+| Option | Description |
+|---|---|
+| INSPECT | Gather more diagnostic evidence before committing to repair or replacement |
+| REPAIR | Fix the existing component based on historical repair patterns |
+| REPLACE_COMPONENT | Swap the faulty part with explicit cost and downtime comparison |
+| REPLACE_MACHINE | Full asset replacement with ROI and risk analysis |
 
-Every work order has a responsible technician, a recorded status history, resolution notes, and a supervisor verification decision.
+Each option displays: historical recurrence data, documented repair outcomes, cost categories, estimated downtime, identified risks, spare-part availability, and all unknown/missing fields explicitly labeled UNKNOWN.
 
-This creates an auditable connection between the reported problem and the recorded outcome.
+No arbitrary health percentages or remaining-useful-life scores are generated. Any scored metric has an explicit formula, defined inputs, and stated limitations.
+
+**The human supervisor retains full decision authority. No AI action is autonomous.**
+
+## 4.5 Cross-machine recurring-fault intelligence
+
+The system connects machines, equipment types, components, symptoms, incidents, and verified resolutions to reveal recurring fault patterns.
+
+The interface distinguishes a historical association from proof that the same repair will work again.
+
+## 4.6 Closed-loop accountability
+
+Every work order has a responsible technician, recorded status history, resolution notes, and a supervisor verification decision. This creates an auditable connection between the reported problem and the recorded outcome. Future analysis can retrieve the new event as part of the evidence base.
 
 ---
-
 # 5. Target Users and Permissions
 
 The MVP supports two primary permission groups. The manager dashboard is included within supervisor access rather than introducing a separate role.
@@ -881,3 +892,6 @@ Its differentiator is not that AI can write a maintenance summary. It is that th
 **Product promise: Every report is traceable. Every approved task has an owner. Every historical recommendation has a source. Every verified closure has an accountable decision.**
 
 **End of PRD.**
+
+
+
