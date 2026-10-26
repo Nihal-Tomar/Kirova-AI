@@ -380,3 +380,77 @@ The database is pre-seeded with synthetic data (clearly labeled):
 Made with ❤️ and a lot of `tsx watch`
 
 </div>
+
+- **1** Organization · **2** Sites · **4** Users
+- **13** Industrial Machines across 5 equipment types:
+  - Conveyors, CNC Milling Machines, Lathes, Hydraulic Presses, Air Compressors
+- **10** Components per machine type
+- **10** Verified Historical Work Orders (closed, with resolution records)
+- Complete audit trail for all seeded events
+
+---
+
+## 📜 Scripts Reference
+
+| Command | Where | Description |
+|---|---|---|
+| `npm run dev` | `server/` | Start backend on port 5000 (hot reload) |
+| `npm run dev` | `client/` | Start frontend on port 5173 (hot reload) |
+| `npm run seed` | `server/` | Reset and seed all demo data |
+| `npm test` | `server/` | Run 44 automated tests |
+| `npm run test:eval` | `server/` | Run 30-case AI hallucination benchmark |
+| `npm run build` | `server/` | Compile TypeScript to `dist/` |
+| `npm run build` | `client/` | Build production frontend bundle |
+
+---
+
+## 📐 API Endpoints
+
+| Method | Endpoint | Role | Description |
+|---|---|---|---|
+| `POST` | `/api/auth/login` | Public | JWT login |
+| `POST` | `/api/reports` | All | Submit voice or text report |
+| `POST` | `/api/reports/:id/extract` | All | Run AI extraction pipeline |
+| `POST` | `/api/reports/:id/clarify` | All | Resolve ambiguity |
+| `POST` | `/api/work-orders` | Supervisor | Create work order from incident |
+| `POST` | `/api/work-orders/:id/approve` | Supervisor | Approve work order |
+| `POST` | `/api/work-orders/:id/assign` | Supervisor | Assign technician |
+| `POST` | `/api/work-orders/:id/verify-close` | Supervisor | Verified closure |
+| `GET` | `/api/incidents/:id/decision-support` | All | 4-way repair-vs-replace report |
+| `GET` | `/api/incidents/:id/evidence-graph` | All | Source-linked evidence graph |
+| `GET` | `/api/work-orders/:id/history` | Assigned Tech / Supervisor | Case history (access-gated) |
+| `GET` | `/api/audit-logs` | Supervisor | Immutable audit trail |
+
+---
+
+## 🌐 Deployment
+
+| Service | Platform | Config |
+|---|---|---|
+| Frontend | Vercel | [`client/vercel.json`](./client/vercel.json) |
+| Backend | Render | [`render.yaml`](./render.yaml) |
+
+---
+
+## 📚 Documentation
+
+| Document | Description |
+|---|---|
+| [`docs/PRD.md`](./docs/PRD.md) | Full product requirements, user journeys, functional requirements |
+| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | System architecture, data model, API spec, FSM, AI pipeline |
+| [`docs/IMPLEMENTATION_PLAN.md`](./docs/IMPLEMENTATION_PLAN.md) | 8-day roadmap, milestone gates, scope matrix |
+| [`docs/TEST_PLAN.md`](./docs/TEST_PLAN.md) | Testing strategy, 30-case benchmark specification |
+
+---
+
+## 👥 Team
+
+<div align="center">
+
+**Team Sudarshan**  
+*HackFront India 2026 — Theme: Open Source & Innovation*
+
+Made with ❤️ and a lot of `tsx watch`
+
+</div>
+
