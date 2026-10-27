@@ -12,6 +12,20 @@ async function startServer() {
   await db.init();
   await runMigrations();
 
+  // Auto-seed if users table is empty (ensures demo credentials immediately work on Render)
+  try {
+    const userCountRes = await db.query("SELECT COUNT(*) AS count FROM users;");
+    const count = parseInt(userCountRes.rows[0]?.count || "0", 10);
+    if (count === 0) {
+      console.log("🌱 [AUTO-SEED] Empty database detected. Running seedDatabase()...");
+      const { seedDatabase } = await import("./scripts/seed.js");
+      await seedDatabase();
+      console.log("✅ [AUTO-SEED] Database seeded successfully on startup.");
+    }
+  } catch (err) {
+    console.warn("⚠️ [AUTO-SEED] Could not verify/seed database on startup:", err);
+  }
+
   const app = createApp();
   const server = app.listen(config.port, "0.0.0.0", () => {
     console.log(`🚀 [SERVER] Kirova AI API listening at http://localhost:${config.port}`);

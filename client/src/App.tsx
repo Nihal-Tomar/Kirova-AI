@@ -1,6 +1,20 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { LandingPage } from './pages/LandingPage';
 import { GoogleSignInButton } from './components/GoogleSignInButton';
+import {
+  Activity,
+  BrainCircuit,
+  ClipboardList,
+  FilePlus2,
+  Globe2,
+  LayoutDashboard,
+  LogOut,
+  Package,
+  Search,
+  ShieldCheck,
+  Siren,
+  Wrench,
+} from 'lucide-react';
 // Import landing design tokens for the login page design extension
 import './styles/landing.css';
 
@@ -756,23 +770,23 @@ function Sidebar({ view, setView, onExitToLanding }: { view: string; setView: (v
   const isSupervisor = user.role === 'SUPERVISOR';
 
   const commonNav = [
-    { id: 'dashboard', icon: '📊', label: 'Dashboard' },
+    { id: 'dashboard', icon: LayoutDashboard, label: 'Operations overview' },
   ];
 
   const reporterNav = [
-    { id: 'new-report', icon: '📝', label: 'New Report' },
-    { id: 'my-reports', icon: '📋', label: 'My Reports' },
+    { id: 'new-report', icon: FilePlus2, label: 'Report a fault' },
+    { id: 'my-reports', icon: ClipboardList, label: 'My reports' },
   ];
 
   const technicianNav = [
-    { id: 'my-workorders', icon: '🔧', label: 'My Work Orders' },
+    { id: 'my-workorders', icon: Wrench, label: 'My work orders' },
   ];
 
   const supervisorNav = [
-    { id: 'incidents', icon: '🚨', label: 'All Incidents' },
-    { id: 'workorders', icon: '📦', label: 'Work Orders' },
-    { id: 'intelligence', icon: '🧠', label: 'Intelligence' },
-    { id: 'audit', icon: '🔒', label: 'Audit Logs' },
+    { id: 'incidents', icon: Siren, label: 'Incident queue' },
+    { id: 'workorders', icon: Package, label: 'Work orders' },
+    { id: 'intelligence', icon: BrainCircuit, label: 'Maintenance intelligence' },
+    { id: 'audit', icon: ShieldCheck, label: 'Audit trail' },
   ];
 
   const navItems = [
@@ -803,7 +817,7 @@ function Sidebar({ view, setView, onExitToLanding }: { view: string; setView: (v
         <div className="nav-section-label">Navigation</div>
         {navItems.map(item => (
           <button key={item.id} id={`nav-${item.id}`} className={`nav-item ${view === item.id ? 'active' : ''}`} onClick={() => setView(item.id)}>
-            <span className="nav-item-icon">{item.icon}</span>
+            <item.icon className="nav-item-icon" size={18} strokeWidth={1.8} aria-hidden="true" />
             {item.label}
           </button>
         ))}
@@ -815,7 +829,7 @@ function Sidebar({ view, setView, onExitToLanding }: { view: string; setView: (v
             onClick={onExitToLanding}
             title="Return to Public Homepage"
           >
-            <span className="nav-item-icon">🌐</span>
+            <Globe2 className="nav-item-icon" size={18} strokeWidth={1.8} aria-hidden="true" />
             Public Website
           </button>
         )}
@@ -827,7 +841,7 @@ function Sidebar({ view, setView, onExitToLanding }: { view: string; setView: (v
           <div className="user-name">{user.name}</div>
           <div className="user-role">{user.role === 'SUPERVISOR' ? 'Supervisor' : 'Technician'}</div>
         </div>
-        <button className="user-logout-btn" title="Sign out" onClick={logout}>🚪</button>
+        <button className="user-logout-btn" title="Sign out" aria-label="Sign out" onClick={logout}><LogOut size={17} /></button>
       </div>
     </nav>
   );
@@ -2142,14 +2156,14 @@ function AppContent({ onExitToLanding }: { onExitToLanding?: () => void }) {
 
   const getTitle = () => {
     const titles: Record<string, [string, string]> = {
-      dashboard: ['📊 Dashboard', 'Overview & key metrics'],
-      'new-report': ['📝 New Incident Report', 'Submit a fault report'],
-      'my-reports': ['📋 My Reports', 'Track your submitted reports'],
-      'my-workorders': ['🔧 My Work Orders', 'View and update assigned tasks'],
-      incidents: ['🚨 All Incidents', 'Review and manage incident reports'],
-      workorders: ['📦 Work Orders', 'Manage work order lifecycle'],
-      intelligence: ['🧠 Intelligence', 'Recurring faults & machine registry'],
-      audit: ['🔒 Audit Logs', 'Immutable system action history'],
+      dashboard: ['Operations overview', 'See what needs attention across the maintenance workflow'],
+      'new-report': ['Report a fault', 'Capture a clear machine problem in your own words'],
+      'my-reports': ['My reports', 'Track submitted faults and the next step'],
+      'my-workorders': ['My work orders', 'Work safely through assigned maintenance tasks'],
+      incidents: ['Incident queue', 'Review evidence, urgency, and the next accountable action'],
+      workorders: ['Work orders', 'Manage approvals, assignment, execution, and verification'],
+      intelligence: ['Maintenance intelligence', 'Trace recurring faults back to source records'],
+      audit: ['Audit trail', 'Immutable history of operational decisions and changes'],
     };
     return titles[view] || ['Kirova AI', ''];
   };
@@ -2176,10 +2190,16 @@ function AppContent({ onExitToLanding }: { onExitToLanding?: () => void }) {
       <main className="main-content">
         <div className="page-header">
           <div>
+            <div className="eyebrow"><Activity size={13} aria-hidden="true" /> Kirova operations studio</div>
             <div className="page-title">{pageTitle}</div>
             {pageSubtitle && <div className="page-subtitle">{pageSubtitle}</div>}
           </div>
           <div className="flex gap-3 items-center">
+            <button type="button" className="header-search" aria-label="Search records">
+              <Search size={16} aria-hidden="true" />
+              <span>Search records</span>
+              <kbd>⌘ K</kbd>
+            </button>
             {onExitToLanding && (
               <button
                 type="button"
@@ -2191,7 +2211,7 @@ function AppContent({ onExitToLanding }: { onExitToLanding?: () => void }) {
               </button>
             )}
             <span className={`badge ${auth.user.role === 'SUPERVISOR' ? 'badge-approved' : 'badge-assigned'}`}>
-              {auth.user.role === 'SUPERVISOR' ? '🔵 Supervisor' : '🟢 Technician'}
+              {auth.user.role === 'SUPERVISOR' ? 'Supervisor' : 'Technician / reporter'}
             </span>
           </div>
         </div>

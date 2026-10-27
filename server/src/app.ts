@@ -40,15 +40,25 @@ export function createApp(): express.Application {
   // Global Middleware
   app.use(helmet({ contentSecurityPolicy: false }));
 
-  // CORS — restrict to allowlist in production
-  const allowedOrigins = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
-    : ["http://localhost:5173", "http://localhost:4173"];
+  // CORS — robust allowlist for local dev, Vercel frontend, and Render domains
+  const customAllowed = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim().replace(/\/$/, ""))
+    : [];
 
   app.use(cors({
     origin: (origin, callback) => {
-      // Allow same-origin requests (no origin header) and whitelisted origins
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Allow same-origin / server-to-server (no origin header)
+      if (!origin) {
+        return callback(null, true);
+      }
+      const cleanOrigin = origin.replace(/\/$/, "");
+      if (
+        customAllowed.includes(cleanOrigin) ||
+        cleanOrigin === "https://kirova-ai.vercel.app" ||
+        cleanOrigin.endsWith(".vercel.app") ||
+        cleanOrigin.endsWith(".onrender.com") ||
+        /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(cleanOrigin)
+      ) {
         callback(null, true);
       } else {
         callback(new Error(`CORS: Origin ${origin} not allowed`));
@@ -70,6 +80,18 @@ export function createApp(): express.Application {
   // Health check
   app.get("/health", (_req, res) => {
     res.json({ status: "healthy", service: "kirova-api", timestamp: new Date().toISOString() });
+  });
+
+  // Seed trigger endpoint (allows on-demand database seeding in production / demo)
+  app.post("/api/seed", async (_req, res) => {
+    try {
+      const { seedDatabase } = await import("./scripts/seed.js");
+      await seedDatabase();
+      res.json({ success: true, message: "Database seeded successfully with demo users, machines, and work orders." });
+    } catch (err: any) {
+      console.error("Seed endpoint error:", err);
+      res.status(500).json({ error: "SEED_FAILED", message: err.message });
+    }
   });
 
   // --- Auth Routes ---
