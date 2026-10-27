@@ -18,13 +18,19 @@ export interface GroundedHistoricalIncident {
 }
 
 export class HistoryService {
-  async retrieveForMachine(machineId: string | null, symptomCategory?: string): Promise<GroundedHistoricalIncident[]> {
+  async retrieveForMachine(machineId: string | null, symptomCategory?: string, organizationId?: string): Promise<GroundedHistoricalIncident[]> {
     if (!machineId) {
       return [];
     }
 
     // First get the target machine's equipment type
-    const mchRes = await db.query("SELECT type FROM machines WHERE id = $1", [machineId]);
+    const mchRes = await db.query(
+      `SELECT m.type
+       FROM machines m
+       JOIN sites s ON m.site_id = s.id
+       WHERE m.id = $1 AND ($2::text IS NULL OR s.organization_id = $2)`,
+      [machineId, organizationId || null]
+    );
     if (mchRes.rows.length === 0) {
       return [];
     }
@@ -50,13 +56,18 @@ export class HistoryService {
       FROM work_orders wo
       JOIN incidents i ON wo.incident_id = i.id
       JOIN machines m ON wo.machine_id = m.id
+      JOIN sites s ON m.site_id = s.id
       WHERE wo.status = 'VERIFIED_CLOSED'
         AND (m.id = $1 OR m.type = $2)
     `;
     const params: any[] = [machineId, targetType];
+    if (organizationId) {
+      sql += " AND s.organization_id = $3";
+      params.push(organizationId);
+    }
 
     if (symptomCategory) {
-      sql += " AND (i.symptom_category = $3 OR m.id = $1)";
+      sql += ` AND (i.symptom_category = $${params.length + 1} OR m.id = $1)`;
       params.push(symptomCategory);
     }
 
@@ -81,7 +92,7 @@ export class HistoryService {
     }));
   }
 
-  async getRecurringFaults(equipmentType?: string, symptomCategory?: string) {
+  async getRecurringFaults(equipmentType?: string, symptomCategory?: string, organizationId?: string) {
     let sql = `
       SELECT 
         m.type AS equipment_type,
@@ -92,10 +103,16 @@ export class HistoryService {
       FROM work_orders wo
       JOIN incidents i ON wo.incident_id = i.id
       JOIN machines m ON wo.machine_id = m.id
+      JOIN sites s ON m.site_id = s.id
       LEFT JOIN components c ON wo.component_id = c.id
       WHERE wo.status = 'VERIFIED_CLOSED'
     `;
     const params: any[] = [];
+
+    if (organizationId) {
+      params.push(organizationId);
+      sql += ` AND s.organization_id = $${params.length}`;
+    }
 
     if (equipmentType) {
       params.push(equipmentType);

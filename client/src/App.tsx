@@ -3,17 +3,29 @@ import { LandingPage } from './pages/LandingPage';
 import { GoogleSignInButton } from './components/GoogleSignInButton';
 import {
   Activity,
+  AlertTriangle,
   BrainCircuit,
+  CheckCircle2,
   ClipboardList,
+  Clock3,
+  Cog,
+  Eye,
   FilePlus2,
   Globe2,
   LayoutDashboard,
+  Lightbulb,
   LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
   Package,
+  RefreshCw,
   Search,
+  Bell,
   ShieldCheck,
   Siren,
+  Timer,
   Wrench,
+  X,
 } from 'lucide-react';
 // Import landing design tokens for the login page design extension
 import './styles/landing.css';
@@ -123,7 +135,12 @@ function ToastProvider({ children }: { children: React.ReactNode }) {
     setTimeout(() => setToasts(prev => prev.filter(x => x.id !== id)), 5000);
   }, []);
 
-  const icons: Record<Toast['type'], string> = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+  const icons: Record<Toast['type'], React.ReactNode> = {
+    success: <CheckCircle2 size={17} aria-hidden="true" />,
+    error: <AlertTriangle size={17} aria-hidden="true" />,
+    warning: <AlertTriangle size={17} aria-hidden="true" />,
+    info: <Lightbulb size={17} aria-hidden="true" />,
+  };
 
   return (
     <ToastContext.Provider value={{ addToast }}>
@@ -184,7 +201,7 @@ function Modal({ open, onClose, title, children, size = '' }: { open: boolean; o
       <div className={`modal ${size}`}>
         <div className="modal-header">
           <h3 className="modal-title">{title}</h3>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose} aria-label="Close dialog"><X size={17} /></button>
         </div>
         {children}
       </div>
@@ -202,6 +219,17 @@ function EmptyState({ icon, title, desc }: { icon: string; title: string; desc: 
       <span className="empty-state-icon">{icon}</span>
       <span className="empty-state-title">{title}</span>
       <span className="empty-state-desc">{desc}</span>
+    </div>
+  );
+}
+
+function ErrorState({ title = 'Could not load this view', message, onRetry }: { title?: string; message: string; onRetry: () => void }) {
+  return (
+    <div className="empty-state" role="alert">
+      <span className="empty-state-icon">!</span>
+      <span className="empty-state-title">{title}</span>
+      <span className="empty-state-desc">{message}</span>
+      <button type="button" className="btn btn-secondary btn-sm" onClick={onRetry}>Retry</button>
     </div>
   );
 }
@@ -663,7 +691,7 @@ function LoginPage({ onBackToLanding }: { onBackToLanding?: () => void }) {
         {/* Inline error banner */}
         {fieldError && (
           <div className="kirova-login-error" role="alert" aria-live="polite">
-            <span aria-hidden="true">⚠</span> {fieldError}
+            <AlertTriangle size={16} aria-hidden="true" /> {fieldError}
           </div>
         )}
 
@@ -724,7 +752,7 @@ function LoginPage({ onBackToLanding }: { onBackToLanding?: () => void }) {
         {/* Quick Demo Role Selector */}
         <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
           <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px', fontWeight: 600 }}>
-            ⚡ Hackathon Demo Accounts (1-Click)
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Lightbulb size={13} aria-hidden="true" /> Hackathon demo accounts</span>
           </div>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <button
@@ -733,7 +761,7 @@ function LoginPage({ onBackToLanding }: { onBackToLanding?: () => void }) {
               style={{ fontSize: '11px', padding: '4px 10px', background: 'rgba(99, 102, 241, 0.12)', color: '#818cf8', border: '1px solid rgba(99, 102, 241, 0.35)' }}
               onClick={() => { setEmail('supervisor@kirova.ai'); setPassword('Supervisor@123'); }}
             >
-              🔵 Supervisor (Priya)
+              Supervisor · Priya
             </button>
             <button
               type="button"
@@ -741,7 +769,7 @@ function LoginPage({ onBackToLanding }: { onBackToLanding?: () => void }) {
               style={{ fontSize: '11px', padding: '4px 10px', background: 'rgba(16, 185, 129, 0.12)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.35)' }}
               onClick={() => { setEmail('tech.rajesh@kirova.ai'); setPassword('Tech@123'); }}
             >
-              🟢 Technician (Rajesh)
+              Technician · Rajesh
             </button>
             <button
               type="button"
@@ -749,7 +777,7 @@ function LoginPage({ onBackToLanding }: { onBackToLanding?: () => void }) {
               style={{ fontSize: '11px', padding: '4px 10px', background: 'rgba(245, 158, 11, 0.12)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.35)' }}
               onClick={() => { setEmail('worker.amit@kirova.ai'); setPassword('Worker@123'); }}
             >
-              🟡 Worker (Amit)
+              Worker · Amit
             </button>
           </div>
         </div>
@@ -764,7 +792,7 @@ function LoginPage({ onBackToLanding }: { onBackToLanding?: () => void }) {
 }
 
 // ── Sidebar Navigation ────────────────────────────────────────
-function Sidebar({ view, setView, onExitToLanding }: { view: string; setView: (v: string) => void; onExitToLanding?: () => void }) {
+function Sidebar({ view, setView, onExitToLanding, collapsed, onToggle }: { view: string; setView: (v: string) => void; onExitToLanding?: () => void; collapsed: boolean; onToggle: () => void }) {
   const { auth, logout } = useAuth();
   const user = auth.user!;
   const isSupervisor = user.role === 'SUPERVISOR';
@@ -786,6 +814,7 @@ function Sidebar({ view, setView, onExitToLanding }: { view: string; setView: (v
     { id: 'incidents', icon: Siren, label: 'Incident queue' },
     { id: 'workorders', icon: Package, label: 'Work orders' },
     { id: 'intelligence', icon: BrainCircuit, label: 'Maintenance intelligence' },
+    { id: 'registry', icon: Wrench, label: 'Machine registry' },
     { id: 'audit', icon: ShieldCheck, label: 'Audit trail' },
   ];
 
@@ -798,7 +827,7 @@ function Sidebar({ view, setView, onExitToLanding }: { view: string; setView: (v
   const initials = user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
   return (
-    <nav className="sidebar">
+    <nav className={`sidebar ${collapsed ? 'sidebar-collapsed' : ''}`}>
       <div className="sidebar-logo">
         <div className="sidebar-logo-icon" style={{ background: '#111329', padding: '6px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
@@ -811,6 +840,9 @@ function Sidebar({ view, setView, onExitToLanding }: { view: string; setView: (v
           <span className="sidebar-logo-name">Kirova AI</span>
           <span className="sidebar-logo-tagline">Voice → Verified Action</span>
         </div>
+        <button type="button" className="sidebar-toggle" onClick={onToggle} aria-label={collapsed ? 'Expand navigation' : 'Collapse navigation'} title={collapsed ? 'Expand navigation' : 'Collapse navigation'}>
+          {collapsed ? <PanelLeftOpen size={17} /> : <PanelLeftClose size={17} />}
+        </button>
       </div>
 
       <div className="sidebar-nav">
@@ -818,7 +850,7 @@ function Sidebar({ view, setView, onExitToLanding }: { view: string; setView: (v
         {navItems.map(item => (
           <button key={item.id} id={`nav-${item.id}`} className={`nav-item ${view === item.id ? 'active' : ''}`} onClick={() => setView(item.id)}>
             <item.icon className="nav-item-icon" size={18} strokeWidth={1.8} aria-hidden="true" />
-            {item.label}
+            <span className="nav-item-label">{item.label}</span>
           </button>
         ))}
         {onExitToLanding && (
@@ -830,7 +862,7 @@ function Sidebar({ view, setView, onExitToLanding }: { view: string; setView: (v
             title="Return to Public Homepage"
           >
             <Globe2 className="nav-item-icon" size={18} strokeWidth={1.8} aria-hidden="true" />
-            Public Website
+            <span className="nav-item-label">Public Website</span>
           </button>
         )}
       </div>
@@ -853,26 +885,37 @@ function DashboardView() {
   const isSupervisor = auth.user?.role === 'SUPERVISOR';
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     if (!isSupervisor) { setLoading(false); return; }
-    apiRequest('/api/dashboard', {}, auth.token!).then(d => { setMetrics(d); setLoading(false); }).catch(() => setLoading(false));
+    setLoading(true);
+    setLoadError(null);
+    apiRequest('/api/dashboard', {}, auth.token!)
+      .then(d => { setMetrics(d); setLoading(false); })
+      .catch((error: unknown) => {
+        setLoading(false);
+        setLoadError(error instanceof Error ? error.message : 'Operations metrics could not be loaded.');
+      });
   }, [isSupervisor, auth.token]);
+
+  useEffect(() => { load(); }, [load]);
 
   if (!isSupervisor) return <ReporterDashboard />;
   if (loading) return <div className="loading-overlay"><Spinner /><span>Loading dashboard…</span></div>;
-  if (!metrics) return <EmptyState icon="📊" title="No data available" desc="Dashboard metrics unavailable" />;
+  if (loadError) return <ErrorState message={loadError} onRetry={load} />;
+  if (!metrics) return <EmptyState icon="📊" title="No data available" desc="Dashboard metrics unavailable." />;
 
   const m = metrics.metrics;
   const stats = [
-    { label: 'Open Incidents', value: m.openIncidents, icon: '🚨', color: '#ef4444' },
-    { label: 'Awaiting Review', value: m.awaitingReviewIncidents, icon: '👁️', color: '#f59e0b' },
-    { label: 'Awaiting Approval', value: m.awaitingApprovalOrders, icon: '⏳', color: '#6366f1' },
-    { label: 'Active Work Orders', value: m.activeWorkOrders, icon: '🔧', color: '#06b6d4' },
-    { label: 'Pending Verification', value: m.resolvedAwaitingVerification, icon: '🔍', color: '#8b5cf6' },
-    { label: 'Verified & Closed', value: m.verifiedClosedOrders, icon: '✅', color: '#10b981' },
-    { label: 'Total Machines', value: m.totalMachines, icon: '⚙️', color: '#64748b' },
-    { label: 'Avg Resolution (h)', value: m.averageResolutionHours?.toFixed(1) ?? '—', icon: '⏱️', color: '#f59e0b' },
+    { label: 'Open Incidents', value: m.openIncidents, icon: Siren, color: '#ef4444' },
+    { label: 'Awaiting Review', value: m.awaitingReviewIncidents, icon: Eye, color: '#f59e0b' },
+    { label: 'Awaiting Approval', value: m.awaitingApprovalOrders, icon: Clock3, color: '#6366f1' },
+    { label: 'Active Work Orders', value: m.activeWorkOrders, icon: Wrench, color: '#06b6d4' },
+    { label: 'Pending Verification', value: m.resolvedAwaitingVerification, icon: Search, color: '#8b5cf6' },
+    { label: 'Verified & Closed', value: m.verifiedClosedOrders, icon: CheckCircle2, color: '#10b981' },
+    { label: 'Total Machines', value: m.totalMachines, icon: Cog, color: '#64748b' },
+    { label: 'Avg Resolution (h)', value: m.averageResolutionHours?.toFixed(1) ?? '—', icon: Timer, color: '#f59e0b' },
   ];
 
   return (
@@ -880,7 +923,7 @@ function DashboardView() {
       <div className="stat-grid">
         {stats.map((s, i) => (
           <div key={i} className="stat-card" style={{ '--stat-color': s.color } as any}>
-            <div className="stat-icon" style={{ background: `${s.color}22` }}>{s.icon}</div>
+            <div className="stat-icon" style={{ background: `${s.color}22`, color: s.color }}><s.icon size={19} strokeWidth={2} aria-hidden="true" /></div>
             <div className="stat-value">{s.value}</div>
             <div className="stat-label">{s.label}</div>
           </div>
@@ -891,7 +934,7 @@ function DashboardView() {
         <div className="card">
           <div className="card-header">
             <div>
-              <div className="card-title">🧠 Recurring Fault Clusters</div>
+              <div className="card-title"><BrainCircuit size={17} aria-hidden="true" /> Recurring Fault Clusters</div>
               <div className="card-subtitle">Machines with repeated incidents by symptom pattern</div>
             </div>
           </div>
@@ -922,18 +965,29 @@ function ReporterDashboard() {
   const { auth } = useAuth();
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  useEffect(() => {
-    apiRequest('/api/reports', {}, auth.token!).then(d => { setReports(d.reports || []); setLoading(false); }).catch(() => setLoading(false));
+  const load = useCallback(() => {
+    setLoading(true);
+    setLoadError(null);
+    apiRequest('/api/reports', {}, auth.token!)
+      .then(d => { setReports(d.reports || []); setLoading(false); })
+      .catch((error: unknown) => {
+        setLoading(false);
+        setLoadError(error instanceof Error ? error.message : 'Reports could not be loaded.');
+      });
   }, [auth.token]);
 
+  useEffect(() => { load(); }, [load]);
+
   if (loading) return <div className="loading-overlay"><Spinner /></div>;
+  if (loadError) return <ErrorState message={loadError} onRetry={load} />;
 
   const stats = [
-    { label: 'Total Reports', value: reports.length, icon: '📋', color: '#6366f1' },
-    { label: 'In Review', value: reports.filter(r => r.status === 'AWAITING_REVIEW').length, icon: '👁️', color: '#06b6d4' },
-    { label: 'Needs Clarification', value: reports.filter(r => r.status === 'AWAITING_CLARIFICATION').length, icon: '❓', color: '#f59e0b' },
-    { label: 'Converted to WO', value: reports.filter(r => r.status === 'CONVERTED_TO_WORK_ORDER').length, icon: '✅', color: '#10b981' },
+    { label: 'Total Reports', value: reports.length, icon: ClipboardList, color: '#6366f1' },
+    { label: 'In Review', value: reports.filter(r => r.status === 'AWAITING_REVIEW').length, icon: Eye, color: '#06b6d4' },
+    { label: 'Needs Clarification', value: reports.filter(r => r.status === 'AWAITING_CLARIFICATION').length, icon: AlertTriangle, color: '#f59e0b' },
+    { label: 'Converted to WO', value: reports.filter(r => r.status === 'CONVERTED_TO_WORK_ORDER').length, icon: CheckCircle2, color: '#10b981' },
   ];
 
   return (
@@ -941,7 +995,7 @@ function ReporterDashboard() {
       <div className="stat-grid">
         {stats.map((s, i) => (
           <div key={i} className="stat-card" style={{ '--stat-color': s.color } as any}>
-            <div className="stat-icon" style={{ background: `${s.color}22` }}>{s.icon}</div>
+            <div className="stat-icon" style={{ background: `${s.color}22`, color: s.color }}><s.icon size={19} strokeWidth={2} aria-hidden="true" /></div>
             <div className="stat-value">{s.value}</div>
             <div className="stat-label">{s.label}</div>
           </div>
@@ -1243,14 +1297,35 @@ function MyReportsView() {
   const { addToast } = useToast();
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [selected, setSelected] = useState<any>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
 
   const load = useCallback(() => {
-    apiRequest('/api/reports', {}, auth.token!).then(d => { setReports(d.reports || []); setLoading(false); }).catch(() => setLoading(false));
+    setLoading(true);
+    setLoadError(null);
+    apiRequest('/api/reports', {}, auth.token!)
+      .then(d => { setReports(d.reports || []); setLoading(false); })
+      .catch((error: unknown) => {
+        setLoading(false);
+        setLoadError(error instanceof Error ? error.message : 'Your reports could not be loaded.');
+      });
   }, [auth.token]);
 
   useEffect(() => { load(); }, [load]);
+
+  const visibleReports = [...reports]
+    .filter(report => {
+      const haystack = `${report.report_number} ${report.machine_name || ''} ${report.symptom_text || ''}`.toLowerCase();
+      return haystack.includes(query.trim().toLowerCase()) && (!statusFilter || report.status === statusFilter);
+    })
+    .sort((a, b) => {
+      const delta = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      return sortOrder === 'newest' ? -delta : delta;
+    });
 
   const openDetail = async (id: string) => {
     setDetailLoading(true);
@@ -1262,6 +1337,7 @@ function MyReportsView() {
   };
 
   if (loading) return <div className="loading-overlay"><Spinner /></div>;
+  if (loadError) return <ErrorState message={loadError} onRetry={load} />;
 
   return (
     <div>
@@ -1315,16 +1391,32 @@ function MyReportsView() {
       <div className="card">
         <div className="card-header">
           <div className="card-title">My Incident Reports</div>
-          <button className="btn btn-ghost btn-sm" onClick={load}>🔄 Refresh</button>
+          <button className="btn btn-ghost btn-sm" onClick={load}><RefreshCw size={14} aria-hidden="true" /> Refresh</button>
+        </div>
+        <div className="list-toolbar">
+          <input className="form-control" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search reports or machines" aria-label="Search my reports" />
+          <select className="form-control" value={statusFilter} onChange={event => setStatusFilter(event.target.value)} aria-label="Filter reports by status">
+            <option value="">All statuses</option>
+            <option value="AWAITING_REVIEW">Awaiting review</option>
+            <option value="AWAITING_CLARIFICATION">Needs clarification</option>
+            <option value="CONVERTED_TO_WORK_ORDER">Converted to work order</option>
+            <option value="REJECTED">Rejected</option>
+          </select>
+          <select className="form-control" value={sortOrder} onChange={event => setSortOrder(event.target.value as 'newest' | 'oldest')} aria-label="Sort reports by date">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+          </select>
         </div>
         {reports.length === 0 ? (
           <EmptyState icon="📋" title="No reports yet" desc="Go to New Report to file your first incident." />
+        ) : visibleReports.length === 0 ? (
+          <EmptyState icon="—" title="No matching reports" desc="Try changing the search or status filter." />
         ) : (
           <div className="table-wrapper">
             <table>
               <thead><tr><th>Report #</th><th>Channel</th><th>Machine</th><th>Symptom</th><th>Status</th><th>Date</th><th></th></tr></thead>
               <tbody>
-                {reports.map(r => (
+                {visibleReports.map(r => (
                   <tr key={r.id}>
                     <td className="td-primary font-mono text-xs">{r.report_number}</td>
                     <td><span className="badge badge-draft text-xs">{r.input_channel}</span></td>
@@ -1350,6 +1442,7 @@ function IncidentsView() {
   const { addToast } = useToast();
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState('');
   const [selected, setSelected] = useState<any>(null);
   const [modalTab, setModalTab] = useState<'intake' | 'decision' | 'graph' | 'history'>('intake');
@@ -1362,7 +1455,14 @@ function IncidentsView() {
 
   const load = useCallback(() => {
     const q = filterStatus ? `?status=${filterStatus}` : '';
-    apiRequest(`/api/reports${q}`, {}, auth.token!).then(d => { setReports(d.reports || []); setLoading(false); }).catch(() => setLoading(false));
+    setLoading(true);
+    setLoadError(null);
+    apiRequest(`/api/reports${q}`, {}, auth.token!)
+      .then(d => { setReports(d.reports || []); setLoading(false); })
+      .catch((error: unknown) => {
+        setLoading(false);
+        setLoadError(error instanceof Error ? error.message : 'Incident queue could not be loaded.');
+      });
   }, [auth.token, filterStatus]);
 
   useEffect(() => { load(); }, [load]);
@@ -1403,6 +1503,7 @@ function IncidentsView() {
   };
 
   if (loading) return <div className="loading-overlay"><Spinner /></div>;
+  if (loadError) return <ErrorState message={loadError} onRetry={load} />;
 
   const statusOptions = ['', 'DRAFT', 'AWAITING_CLARIFICATION', 'AWAITING_REVIEW', 'CONVERTED_TO_WORK_ORDER', 'REJECTED'];
 
@@ -1575,6 +1676,7 @@ function WorkOrdersView() {
   const { addToast } = useToast();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [selected, setSelected] = useState<any>(null);
   const [technicians, setTechnicians] = useState<any[]>([]);
   const [technicianId, setTechnicianId] = useState('');
@@ -1582,8 +1684,13 @@ function WorkOrdersView() {
   const [closureNotes, setClosureNotes] = useState('');
   const [returnReason, setReturnReason] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('');
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
 
   const load = useCallback(async () => {
+    setLoadError(null);
     try {
       const [wo, users] = await Promise.all([
         apiRequest('/api/work-orders', {}, auth.token!),
@@ -1591,11 +1698,27 @@ function WorkOrdersView() {
       ]);
       setOrders(wo.workOrders || []);
       setTechnicians((users.accounts || []).filter((u: any) => u.role === 'REPORTER_TECHNICIAN'));
-    } catch (e: any) { addToast({ type: 'error', title: e.message }); }
+    } catch (e: any) {
+      const message = e instanceof Error ? e.message : 'Work orders could not be loaded.';
+      setLoadError(message);
+      addToast({ type: 'error', title: 'Work orders unavailable', message });
+    }
     finally { setLoading(false); }
   }, [auth.token, addToast]);
 
   useEffect(() => { load(); }, [load]);
+
+  const visibleOrders = [...orders]
+    .filter(order => {
+      const haystack = `${order.work_order_number} ${order.machine_name || ''} ${order.asset_tag || ''} ${order.symptom_text || ''}`.toLowerCase();
+      return haystack.includes(query.trim().toLowerCase())
+        && (!statusFilter || order.status === statusFilter)
+        && (!priorityFilter || order.priority === priorityFilter);
+    })
+    .sort((a, b) => {
+      const delta = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      return sortOrder === 'newest' ? -delta : delta;
+    });
 
   const openDetail = async (id: string) => {
     try {
@@ -1615,6 +1738,7 @@ function WorkOrdersView() {
   };
 
   if (loading) return <div className="loading-overlay"><Spinner /></div>;
+  if (loadError) return <ErrorState message={loadError} onRetry={load} />;
 
   return (
     <div>
@@ -1724,16 +1848,41 @@ function WorkOrdersView() {
       <div className="card">
         <div className="card-header">
           <div className="card-title">Work Orders</div>
-          <button className="btn btn-ghost btn-sm" onClick={load}>🔄 Refresh</button>
+          <button className="btn btn-ghost btn-sm" onClick={load}><RefreshCw size={14} aria-hidden="true" /> Refresh</button>
+        </div>
+        <div className="list-toolbar">
+          <input className="form-control" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search work orders or machines" aria-label="Search work orders" />
+          <select className="form-control" value={statusFilter} onChange={event => setStatusFilter(event.target.value)} aria-label="Filter work orders by status">
+            <option value="">All statuses</option>
+            <option value="AWAITING_APPROVAL">Awaiting approval</option>
+            <option value="APPROVED">Approved</option>
+            <option value="ASSIGNED">Assigned</option>
+            <option value="IN_PROGRESS">In progress</option>
+            <option value="RESOLVED">Resolved</option>
+            <option value="VERIFIED_CLOSED">Verified closed</option>
+          </select>
+          <select className="form-control" value={priorityFilter} onChange={event => setPriorityFilter(event.target.value)} aria-label="Filter work orders by priority">
+            <option value="">All priorities</option>
+            <option value="CRITICAL">Critical</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+          <select className="form-control" value={sortOrder} onChange={event => setSortOrder(event.target.value as 'newest' | 'oldest')} aria-label="Sort work orders by date">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+          </select>
         </div>
         {orders.length === 0 ? (
           <EmptyState icon="📦" title="No work orders" desc="Work orders are created from approved incident reports." />
+        ) : visibleOrders.length === 0 ? (
+          <EmptyState icon="—" title="No matching work orders" desc="Try changing the search, status, or priority filter." />
         ) : (
           <div className="table-wrapper">
             <table>
               <thead><tr><th>WO #</th><th>Machine</th><th>Symptom</th><th>Priority</th><th>Status</th><th>Technician</th><th>Created</th><th></th></tr></thead>
               <tbody>
-                {orders.map(o => (
+                {visibleOrders.map(o => (
                   <tr key={o.id}>
                     <td className="td-primary font-mono text-xs">{o.work_order_number}</td>
                     <td><div className="font-semibold text-sm">{o.machine_name}</div><div className="text-xs text-muted">{o.asset_tag}</div></td>
@@ -1760,6 +1909,7 @@ function MyWorkOrdersView() {
   const { addToast } = useToast();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [selected, setSelected] = useState<any>(null);
   const [selectedHistory, setSelectedHistory] = useState<any[]>([]);
   const [techModalTab, setTechModalTab] = useState<'work' | 'history' | 'decision' | 'graph'>('work');
@@ -1772,7 +1922,14 @@ function MyWorkOrdersView() {
   const [actionLoading, setActionLoading] = useState(false);
 
   const load = useCallback(() => {
-    apiRequest('/api/work-orders/assigned', {}, auth.token!).then(d => { setOrders(d.workOrders || []); setLoading(false); }).catch(() => setLoading(false));
+    setLoading(true);
+    setLoadError(null);
+    apiRequest('/api/work-orders/assigned', {}, auth.token!)
+      .then(d => { setOrders(d.workOrders || []); setLoading(false); })
+      .catch((error: unknown) => {
+        setLoading(false);
+        setLoadError(error instanceof Error ? error.message : 'Assigned work orders could not be loaded.');
+      });
   }, [auth.token]);
 
   useEffect(() => { load(); }, [load]);
@@ -1828,6 +1985,7 @@ function MyWorkOrdersView() {
   };
 
   if (loading) return <div className="loading-overlay"><Spinner /></div>;
+  if (loadError) return <ErrorState message={loadError} onRetry={load} />;
 
   return (
     <div>
@@ -1989,7 +2147,7 @@ function MyWorkOrdersView() {
       <div className="card">
         <div className="card-header">
           <div className="card-title">My Work Orders</div>
-          <button className="btn btn-ghost btn-sm" onClick={load}>🔄 Refresh</button>
+          <button className="btn btn-ghost btn-sm" onClick={load}><RefreshCw size={14} aria-hidden="true" /> Refresh</button>
         </div>
         {orders.length === 0 ? (
           <EmptyState icon="🔧" title="No work orders assigned" desc="Your supervisor will assign work orders to you after approval." />
@@ -2024,8 +2182,11 @@ function IntelligenceView() {
   const [machines, setMachines] = useState<any[]>([]);
   const [faults, setFaults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    setLoadError(null);
+    setLoading(true);
     Promise.all([
       apiRequest('/api/machines', {}, auth.token!),
       apiRequest('/api/graph/recurring', {}, auth.token!),
@@ -2033,10 +2194,16 @@ function IntelligenceView() {
       setMachines(m.machines || []);
       setFaults(f.recurringFaultClusters || []);
       setLoading(false);
-    }).catch(() => setLoading(false));
+    }).catch((error: unknown) => {
+      setLoading(false);
+      setLoadError(error instanceof Error ? error.message : 'Maintenance intelligence could not be loaded.');
+    });
   }, [auth.token]);
 
+  useEffect(() => { load(); }, [load]);
+
   if (loading) return <div className="loading-overlay"><Spinner /></div>;
+  if (loadError) return <ErrorState message={loadError} onRetry={load} />;
 
   const maxFaults = faults.length > 0 ? Math.max(...faults.map((f: any) => f.incident_count)) : 1;
 
@@ -2097,17 +2264,140 @@ function IntelligenceView() {
   );
 }
 
+function MachineRegistryView() {
+  const { auth } = useAuth();
+  const [machines, setMachines] = useState<any[]>([]);
+  const [selected, setSelected] = useState<any>(null);
+  const [history, setHistory] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+
+  const load = useCallback(() => {
+    setLoading(true);
+    setLoadError(null);
+    apiRequest('/api/machines', {}, auth.token!)
+      .then(data => { setMachines(data.machines || []); setLoading(false); })
+      .catch((error: unknown) => {
+        setLoading(false);
+        setLoadError(error instanceof Error ? error.message : 'Machine registry could not be loaded.');
+      });
+  }, [auth.token]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const openMachine = async (machine: any) => {
+    setSelected(machine);
+    setHistory([]);
+    setDetailLoading(true);
+    try {
+      const data = await apiRequest(`/api/machines/${machine.id}/history`, {}, auth.token!);
+      setHistory(data.verifiedClosedIncidents || []);
+    } catch {
+      setHistory([]);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const filtered = machines.filter(machine => {
+    const text = `${machine.asset_tag} ${machine.name} ${machine.type} ${machine.location}`.toLowerCase();
+    return text.includes(query.trim().toLowerCase());
+  });
+
+  if (loading) return <div className="loading-overlay"><Spinner /></div>;
+  if (loadError) return <ErrorState message={loadError} onRetry={load} />;
+
+  return (
+    <div>
+      <Modal open={!!selected} onClose={() => setSelected(null)} title={`${selected?.asset_tag} · ${selected?.name}`} size="modal-lg">
+        {selected && (
+          <div>
+            <div className="info-grid mb-6">
+              {[
+                ['Asset tag', selected.asset_tag],
+                ['Equipment type', selected.type],
+                ['Location', selected.location],
+                ['Model', selected.model_number || '—'],
+                ['Serial number', selected.serial_number || '—'],
+                ['Operational status', selected.is_active ? 'Active' : 'Inactive'],
+              ].map(([label, value]) => <div key={label} className="info-item"><span className="info-label">{label}</span><span className="info-value">{value}</span></div>)}
+            </div>
+            <div className="card-title mb-3">Verified maintenance history</div>
+            {detailLoading ? <div className="loading-overlay"><Spinner /></div> : history.length === 0 ? (
+              <EmptyState icon="—" title="No verified history" desc="No verified closed work orders are recorded for this asset or its supported peer history." />
+            ) : (
+              <div className="table-wrapper">
+                <table>
+                  <thead><tr><th>Report</th><th>Work order</th><th>Symptom</th><th>Resolution</th><th>Verified</th></tr></thead>
+                  <tbody>{history.map(item => (
+                    <tr key={item.incidentId}>
+                      <td className="td-primary font-mono text-xs">{item.reportNumber}</td>
+                      <td className="font-mono text-xs">{item.workOrderNumber}</td>
+                      <td>{item.symptomText}</td>
+                      <td>{item.resolutionSummary}</td>
+                      <td className="text-xs text-muted">{formatDate(item.verifiedAt)}</td>
+                    </tr>
+                  ))}</tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
+      <div className="card">
+        <div className="card-header">
+          <div><div className="card-title">Machine registry</div><div className="card-subtitle">{machines.length} assets in your organization</div></div>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={load}><RefreshCw size={14} aria-hidden="true" /> Refresh</button>
+        </div>
+        <div className="search-bar">
+          <input className="form-control" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search asset tag, name, type, or location" aria-label="Search machines" />
+        </div>
+        {filtered.length === 0 ? <EmptyState icon="⚙" title="No matching machines" desc={machines.length === 0 ? 'No assets are registered for this organization.' : 'Try a different search term.'} /> : (
+          <div className="table-wrapper">
+            <table>
+              <thead><tr><th>Asset tag</th><th>Machine</th><th>Type</th><th>Location</th><th>Status</th><th></th></tr></thead>
+              <tbody>{filtered.map(machine => (
+                <tr key={machine.id}>
+                  <td className="td-primary font-mono text-xs">{machine.asset_tag}</td>
+                  <td>{machine.name}</td>
+                  <td>{machine.type}</td>
+                  <td>{machine.location}</td>
+                  <td><span className={`badge ${machine.is_active ? 'badge-approved' : 'badge-draft'}`}>{machine.is_active ? 'Active' : 'Inactive'}</span></td>
+                  <td><button type="button" className="btn btn-secondary btn-sm" onClick={() => openMachine(machine)}>View history</button></td>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Audit Logs View ───────────────────────────────────────────
 function AuditLogsView() {
   const { auth } = useAuth();
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  useEffect(() => {
-    apiRequest('/api/audit-logs?limit=100', {}, auth.token!).then(d => { setLogs(d.auditLogs || []); setLoading(false); }).catch(() => setLoading(false));
+  const load = useCallback(() => {
+    setLoading(true);
+    setLoadError(null);
+    apiRequest('/api/audit-logs?limit=100', {}, auth.token!)
+      .then(d => { setLogs(d.auditLogs || []); setLoading(false); })
+      .catch((error: unknown) => {
+        setLoading(false);
+        setLoadError(error instanceof Error ? error.message : 'Audit history could not be loaded.');
+      });
   }, [auth.token]);
 
+  useEffect(() => { load(); }, [load]);
+
   if (loading) return <div className="loading-overlay"><Spinner /></div>;
+  if (loadError) return <ErrorState message={loadError} onRetry={load} />;
 
   const actionIcon: Record<string, string> = {
     CREATE: '📝', CREATE_WORK_ORDER: '📦', APPROVE: '✅', REJECT: '❌',
@@ -2149,6 +2439,41 @@ function AuditLogsView() {
 function AppContent({ onExitToLanding }: { onExitToLanding?: () => void }) {
   const { auth } = useAuth();
   const [view, setView] = useState('dashboard');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+
+  useEffect(() => {
+    apiRequest('/api/notifications', {}, auth.token!)
+      .then(data => setNotifications(data.notifications || []))
+      .catch(() => setNotifications([]));
+  }, [auth.token, view]);
+
+  useEffect(() => {
+    const query = searchQuery.trim();
+    if (query.length < 2) {
+      setSearchResults([]);
+      setSearchLoading(false);
+      setSearchError(null);
+      return;
+    }
+    setSearchLoading(true);
+    setSearchError(null);
+    const timer = window.setTimeout(() => {
+      apiRequest(`/api/search?q=${encodeURIComponent(query)}`, {}, auth.token!)
+        .then(data => setSearchResults(data.results || []))
+        .catch((error: unknown) => {
+          setSearchResults([]);
+          setSearchError(error instanceof Error ? error.message : 'Search is temporarily unavailable.');
+        })
+        .finally(() => setSearchLoading(false));
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [auth.token, searchQuery]);
 
   if (!auth.user) return <LoginPage onBackToLanding={onExitToLanding} />;
 
@@ -2163,6 +2488,7 @@ function AppContent({ onExitToLanding }: { onExitToLanding?: () => void }) {
       incidents: ['Incident queue', 'Review evidence, urgency, and the next accountable action'],
       workorders: ['Work orders', 'Manage approvals, assignment, execution, and verification'],
       intelligence: ['Maintenance intelligence', 'Trace recurring faults back to source records'],
+      registry: ['Machine registry', 'Browse organization-scoped assets and verified maintenance history'],
       audit: ['Audit trail', 'Immutable history of operational decisions and changes'],
     };
     return titles[view] || ['Kirova AI', ''];
@@ -2179,14 +2505,27 @@ function AppContent({ onExitToLanding }: { onExitToLanding?: () => void }) {
       case 'incidents': return isSupervisor ? <IncidentsView /> : null;
       case 'workorders': return isSupervisor ? <WorkOrdersView /> : null;
       case 'intelligence': return isSupervisor ? <IntelligenceView /> : null;
+      case 'registry': return isSupervisor ? <MachineRegistryView /> : null;
       case 'audit': return isSupervisor ? <AuditLogsView /> : null;
       default: return <DashboardView />;
     }
   };
 
+  const openSearchResult = (result: any) => {
+    setSearchQuery('');
+    setSearchResults([]);
+    if (result.record_type === 'MACHINE') {
+      setView(isSupervisor ? 'registry' : 'my-reports');
+    } else if (result.record_type === 'WORK_ORDER') {
+      setView(isSupervisor ? 'workorders' : 'my-workorders');
+    } else {
+      setView(isSupervisor ? 'incidents' : 'my-reports');
+    }
+  };
+
   return (
     <div className="app-shell">
-      <Sidebar view={view} setView={setView} onExitToLanding={onExitToLanding} />
+      <Sidebar view={view} setView={setView} onExitToLanding={onExitToLanding} collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(value => !value)} />
       <main className="main-content">
         <div className="page-header">
           <div>
@@ -2195,11 +2534,44 @@ function AppContent({ onExitToLanding }: { onExitToLanding?: () => void }) {
             {pageSubtitle && <div className="page-subtitle">{pageSubtitle}</div>}
           </div>
           <div className="flex gap-3 items-center">
-            <button type="button" className="header-search" aria-label="Search records">
+            <div className="global-search">
               <Search size={16} aria-hidden="true" />
-              <span>Search records</span>
-              <kbd>⌘ K</kbd>
-            </button>
+              <input
+                value={searchQuery}
+                onChange={event => setSearchQuery(event.target.value)}
+                placeholder="Search records"
+                aria-label="Search incidents, work orders, and machines"
+              />
+              {searchQuery.trim().length >= 2 && (
+                <div className="search-results" role="listbox">
+                  {searchLoading ? <div className="search-status">Searching authorized records…</div> : searchError ? <div className="search-status search-status-error">{searchError}</div> : searchResults.length === 0 ? <div className="search-status">No authorized records match “{searchQuery.trim()}”.</div> : searchResults.map(result => (
+                    <button type="button" key={`${result.record_type}-${result.id}`} onClick={() => openSearchResult(result)}>
+                      <span className="search-result-type">{result.record_type.replace('_', ' ')}</span>
+                      <span><strong>{result.reference}</strong> · {result.title}</span>
+                      <small>{result.detail || result.status}</small>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="notification-wrap">
+              <button type="button" className="notification-button" aria-label={`Notifications${notifications.length ? `, ${notifications.length} unread` : ''}`} onClick={() => setNotificationsOpen(open => !open)}>
+                <Bell size={17} />
+                {notifications.length > 0 && <span>{notifications.length}</span>}
+              </button>
+              {notificationsOpen && (
+                <div className="notification-popover">
+                  <div className="notification-heading">Action queue</div>
+                  {notifications.length === 0 ? <div className="notification-empty">No action is waiting for you.</div> : notifications.map(notification => (
+                    <button type="button" key={`${notification.notification_type}-${notification.record_id}`} onClick={() => { setNotificationsOpen(false); openSearchResult({ record_type: notification.notification_type.includes('WORK') ? 'WORK_ORDER' : 'INCIDENT', id: notification.record_id }); }}>
+                      <strong>{notification.title}</strong>
+                      <span>{notification.reference}</span>
+                      <small>{notification.detail || 'Open the related record to continue.'}</small>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             {onExitToLanding && (
               <button
                 type="button"
@@ -2207,7 +2579,7 @@ function AppContent({ onExitToLanding }: { onExitToLanding?: () => void }) {
                 className="btn btn-secondary btn-sm"
                 title="View Public Landing Page"
               >
-                🌐 Public Website
+                <Globe2 size={14} aria-hidden="true" /> Public Website
               </button>
             )}
             <span className={`badge ${auth.user.role === 'SUPERVISOR' ? 'badge-approved' : 'badge-assigned'}`}>

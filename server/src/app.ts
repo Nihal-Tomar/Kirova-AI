@@ -130,6 +130,8 @@ export function createApp(): express.Application {
   app.get("/api/incidents/:id/evidence-graph", requireAuth, intelCtrl.getIncidentEvidenceGraph);
   app.get("/api/dashboard", requireAuth, requireRole(["SUPERVISOR"]), intelCtrl.getDashboardMetrics);
   app.get("/api/audit-logs", requireAuth, requireRole(["SUPERVISOR"]), intelCtrl.getAuditLogsController);
+  app.get("/api/search", requireAuth, intelCtrl.searchRecords);
+  app.get("/api/notifications", requireAuth, intelCtrl.getNotifications);
 
   // --- Quantitative Evaluation Benchmark Route ---
   app.post("/api/evaluation/run", requireAuth, evalCtrl.runEvaluation);
