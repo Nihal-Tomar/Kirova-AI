@@ -99,7 +99,7 @@ export class HistoryService {
         c.name AS component_name,
         i.symptom_category,
         wo.resolution_summary,
-        COUNT(wo.id) AS verified_resolution_count
+        MAX(m.id) AS machine_id, MAX(m.name) AS machine_name, MAX(m.asset_tag) AS asset_tag, MAX(m.location) AS location, STRING_AGG(DISTINCT m.asset_tag, ', ') AS affected_machines, COUNT(DISTINCT m.id) AS machine_count, COUNT(wo.id) AS incident_count, COUNT(wo.id) AS verified_resolution_count
       FROM work_orders wo
       JOIN incidents i ON wo.incident_id = i.id
       JOIN machines m ON wo.machine_id = m.id

@@ -69,7 +69,7 @@ export async function seedDatabase(): Promise<void> {
     ]
   );
 
-  // 4. Seed Machines (12 core machines + deliberate ambiguity candidates)
+  // 4. Seed Machines (13 machines)
   const machines = [
     { id: "mch-001", tag: "MCH-001", name: "Main Conveyor Belt 1", type: "CONVEYOR", loc: "Shop Floor Bay A", model: "CB-500X", serial: "SN-CB-001" },
     { id: "mch-002", tag: "MCH-002", name: "CNC Milling Center 1", type: "CNC_MILLING", loc: "Machine Bay 1", model: "VF-2SS", serial: "SN-CNC-002" },
@@ -102,7 +102,7 @@ export async function seedDatabase(): Promise<void> {
     { id: "cmp-004", machineId: "mch-002", name: "Spindle Drive Assembly", partNumber: "PT-SD-303" },
     { id: "cmp-005", machineId: "mch-003", name: "Chuck 3-Jaw Assembly", partNumber: "PT-CK-404" },
     { id: "cmp-006", machineId: "mch-004", name: "Belt Tensioner Roller", partNumber: "PT-TR-505" },
-    { id: "cmp-007", machineId: "mch-005", name: "Hydraulic Cylinder Seal", partNumber: "PT-HC-606" },
+    { id: "cmp-007", machineId: "mch-005", name: "Hydraulic Cylinder Seal Kit", partNumber: "PT-HC-606" },
     { id: "cmp-008", machineId: "mch-006", name: "Air Oil Separator Filter", partNumber: "PT-FL-707" },
     { id: "cmp-009", machineId: "mch-007", name: "Lead Screw Bearing", partNumber: "PT-LS-808" },
     { id: "cmp-010", machineId: "mch-008", name: "Pressure Relief Valve", partNumber: "PT-RV-909" }
@@ -115,7 +115,7 @@ export async function seedDatabase(): Promise<void> {
     );
   }
 
-  // 6. Seed 10 Verified Historical Closed Incidents & Work Orders
+  // 6. Seed 8 Verified Historical Closed Incidents & Work Orders (Staggered over 60 days)
   const verifiedIncidents = [
     {
       incId: "hist-inc-01",
@@ -127,6 +127,8 @@ export async function seedDatabase(): Promise<void> {
       symptom: "Conveyor belt slipping under load with squealing friction noise",
       cat: "ABNORMAL_NOISE",
       priority: "HIGH",
+      daysAgo: 45,
+      resolutionHours: 3.2,
       findings: "Drive pulley bearing was loose and surface had severe rubber glaze.",
       resolution: "Replaced drive pulley bearing (PT-DP-101), aligned belt track, and retensioned drive motor.",
       notes: "Verified normal operation for 2 hours under full 400kg conveyor load."
@@ -141,6 +143,8 @@ export async function seedDatabase(): Promise<void> {
       symptom: "Belt intermittent stoppage during morning shift",
       cat: "MECHANICAL_JAM",
       priority: "MEDIUM",
+      daysAgo: 38,
+      resolutionHours: 2.5,
       findings: "Tensioner roller bearing worn out; belt lost tension and triggered sensor interlock.",
       resolution: "Installed replacement tensioner roller (PT-TR-505) and calibrated proximity sensor.",
       notes: "Verified smooth continuous running without stoppage."
@@ -155,6 +159,8 @@ export async function seedDatabase(): Promise<void> {
       symptom: "Coolant fluid leakage pooling under CNC base table",
       cat: "FLUID_LEAKAGE",
       priority: "MEDIUM",
+      daysAgo: 30,
+      resolutionHours: 4.1,
       findings: "Coolant pump output hose clamp cracked and gasket degraded.",
       resolution: "Replaced pump gasket seal and fitted stainless steel hose clamps.",
       notes: "Pressure tested coolant manifold at 3.5 bar with zero leaks."
@@ -169,6 +175,8 @@ export async function seedDatabase(): Promise<void> {
       symptom: "Lathe chuck jam; spindle stalled when feeding workpiece",
       cat: "MECHANICAL_JAM",
       priority: "HIGH",
+      daysAgo: 24,
+      resolutionHours: 3.8,
       findings: "Metal chips jammed in scroll gear mechanism due to damaged chip wiper.",
       resolution: "Disassembled 3-jaw chuck, cleaned scroll gear, and fitted new wiper felt.",
       notes: "Spindle runout checked within 0.005mm tolerance."
@@ -183,6 +191,8 @@ export async function seedDatabase(): Promise<void> {
       symptom: "Hydraulic press cylinder slow descent and pressure drop below 30 bar",
       cat: "FLUID_LEAKAGE",
       priority: "CRITICAL",
+      daysAgo: 18,
+      resolutionHours: 5.4,
       findings: "Hydraulic ram piston rod seal degraded causing internal fluid bypass.",
       resolution: "Replaced hydraulic cylinder seal kit (PT-HC-606) and topped up ISO VG 46 hydraulic oil.",
       notes: "Holding pressure verified at 50 tons for 15 minutes without creep."
@@ -197,6 +207,8 @@ export async function seedDatabase(): Promise<void> {
       symptom: "Compressor automatic high-temperature trip above 95 degrees C",
       cat: "OVERHEATING",
       priority: "HIGH",
+      daysAgo: 12,
+      resolutionHours: 2.8,
       findings: "Air-oil separator filter completely choked with oily dust deposit.",
       resolution: "Replaced air-oil separator filter (PT-FL-707) and blown out cooler fins with dry air.",
       notes: "Steady state operating temperature stabilized at 78 degrees C."
@@ -209,8 +221,10 @@ export async function seedDatabase(): Promise<void> {
       mchId: "mch-007",
       cmpId: "cmp-009",
       symptom: "Heavy lathe spindle vibration during facing operation",
-      cat: "VIBRATION",
+      cat: "ABNORMAL_NOISE",
       priority: "MEDIUM",
+      daysAgo: 8,
+      resolutionHours: 3.0,
       findings: "Lead screw support bearing play exceeded 0.08mm.",
       resolution: "Replaced lead screw bearing (PT-LS-808) and adjusted preload locknut.",
       notes: "Vibration velocity measured under 1.8 mm/s RMS (ISO Class 1 compliant)."
@@ -225,48 +239,24 @@ export async function seedDatabase(): Promise<void> {
       symptom: "Broken pressure gauge seal leaking hydraulic fluid",
       cat: "FLUID_LEAKAGE",
       priority: "LOW",
+      daysAgo: 5,
+      resolutionHours: 1.6,
       findings: "Vibration caused pressure gauge fitting to back off and pinch the copper seal washer.",
       resolution: "Installed new Dowty bonded seal washer (PT-RV-909) and torqued to 35 Nm.",
       notes: "Visual inspection verified leak-free after 50 continuous pressing cycles."
-    },
-    {
-      incId: "hist-inc-09",
-      woId: "hist-wo-09",
-      repNum: "INC-2026-0009",
-      woNum: "WO-2026-0009",
-      mchId: "mch-010",
-      cmpId: "cmp-004",
-      symptom: "Y-axis guide mechanical jam with servo overload alarm",
-      cat: "MECHANICAL_JAM",
-      priority: "HIGH",
-      findings: "Central lubrication line to Y-axis ball screw was clogged by dried grease.",
-      resolution: "Flushed grease metering valves, re-primed EP2 grease, and cleaned guideway wipers.",
-      notes: "Axis homing and full traverse cycle executed with smooth current draw."
-    },
-    {
-      incId: "hist-inc-10",
-      woId: "hist-wo-10",
-      repNum: "INC-2026-0010",
-      woNum: "WO-2026-0010",
-      mchId: "mch-012",
-      cmpId: "cmp-008",
-      symptom: "Discharge operating pressure drop below 4 bar",
-      cat: "PERFORMANCE_DROP",
-      priority: "MEDIUM",
-      findings: "Minimum pressure valve disc was sticking in half-open position.",
-      resolution: "Overhauled minimum pressure valve, polished piston, and renewed Viton O-rings.",
-      notes: "Air delivery verified at 12.5 m3/min at 7.5 bar rated pressure."
     }
   ];
 
   for (const h of verifiedIncidents) {
-    // Insert incident in CONVERTED_TO_WORK_ORDER
+    const createdInterval = `${h.daysAgo} days`;
+    const resolvedInterval = `${Math.max(1, h.daysAgo - 1)} days`;
+
     await db.query(
       `INSERT INTO incidents (
         id, report_number, organization_id, reporter_id, site_id, machine_id,
         input_channel, symptom_text, symptom_category, recurrence_claimed,
-        urgency_suggestion, urgency_rationale, missing_fields, status
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+        urgency_suggestion, urgency_rationale, missing_fields, status, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW() - INTERVAL '${createdInterval}')`,
       [
         h.incId, h.repNum, orgId, workerId, site1, h.mchId,
         "TEXT", h.symptom, h.cat, false,
@@ -275,7 +265,6 @@ export async function seedDatabase(): Promise<void> {
       ]
     );
 
-    // Insert incident evidence
     await db.query(
       `INSERT INTO incident_evidence (id, incident_id, field_name, label, raw_value, source_reference)
        VALUES 
@@ -289,21 +278,19 @@ export async function seedDatabase(): Promise<void> {
       ]
     );
 
-    // Insert work order in VERIFIED_CLOSED
     await db.query(
       `INSERT INTO work_orders (
         id, work_order_number, incident_id, machine_id, priority, status,
         approved_by_id, approved_at, assigned_technician_id, assigned_at,
         technician_findings, resolution_summary, component_id,
-        verified_by_id, verified_at, supervisor_closure_notes
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW() - INTERVAL '3 days', $8, NOW() - INTERVAL '2 days', $9, $10, $11, $12, NOW() - INTERVAL '1 day', $13)`,
+        verified_by_id, verified_at, supervisor_closure_notes, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW() - INTERVAL '${createdInterval}' + INTERVAL '1 hour', $8, NOW() - INTERVAL '${createdInterval}' + INTERVAL '2 hours', $9, $10, $11, $12, NOW() - INTERVAL '${resolvedInterval}', $13, NOW() - INTERVAL '${createdInterval}')`,
       [
         h.woId, h.woNum, h.incId, h.mchId, h.priority, "VERIFIED_CLOSED",
         supId, tech1Id, h.findings, h.resolution, h.cmpId, supId, h.notes
       ]
     );
 
-    // Insert status history rows
     const historyRows = [
       { id: `wosh-${h.woId}-1`, from: 'AWAITING_APPROVAL', to: 'APPROVED', user: supId, notes: 'Supervisor approved work order' },
       { id: `wosh-${h.woId}-2`, from: 'APPROVED', to: 'ASSIGNED', user: supId, notes: 'Assigned to Rajesh Kumar' },
@@ -314,24 +301,226 @@ export async function seedDatabase(): Promise<void> {
 
     for (const row of historyRows) {
       await db.query(
-        `INSERT INTO work_order_status_history (id, work_order_id, from_status, to_status, changed_by_id, notes)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
+        `INSERT INTO work_order_status_history (id, work_order_id, from_status, to_status, changed_by_id, notes, timestamp)
+         VALUES ($1, $2, $3, $4, $5, $6, NOW() - INTERVAL '${resolvedInterval}')`,
         [row.id, h.woId, row.from, row.to, row.user, row.notes]
       );
     }
 
-    // Insert initial audit trail events
     await db.query(
-      `INSERT INTO audit_logs (id, organization_id, actor_id, entity_type, entity_id, action, previous_state, new_state, reason)
+      `INSERT INTO audit_logs (id, organization_id, actor_id, entity_type, entity_id, action, previous_state, new_state, reason, timestamp)
        VALUES 
-       ($1, $2, $3, 'WORK_ORDER', $4, 'VERIFY_CLOSE', '{"status":"RESOLVED"}', '{"status":"VERIFIED_CLOSED"}', $5)`,
+       ($1, $2, $3, 'WORK_ORDER', $4, 'VERIFY_CLOSE', '{"status":"RESOLVED"}', '{"status":"VERIFIED_CLOSED"}', $5, NOW() - INTERVAL '${resolvedInterval}')`,
       [
         `aud-${h.woId}-close`, orgId, supId, h.woId, h.notes
       ]
     );
   }
 
-  console.log("✅ [SEED] Seeded 1 Organization, 2 Sites, 4 Users, 13 Machines, 10 Components, 10 Verified Historical Work Orders, and Audit Records.");
+  // 7. Seed Active / Live Records:
+  // A. 2 Open Incidents awaiting initial triage / inspection
+  const openIncidents = [
+    {
+      id: "live-inc-01",
+      repNum: "INC-2026-0009",
+      mchId: "mch-005",
+      symptom: "Hydraulic press cylinder slow descent and seal oil pooling under ram during shift. Audible hiss.",
+      cat: "FLUID_LEAKAGE",
+      priority: "CRITICAL",
+      rationale: "Safety critical failure: hydraulic leakage causes load drop risk and high pressure fluid hazard."
+    },
+    {
+      id: "live-inc-02",
+      repNum: "INC-2026-0010",
+      mchId: "mch-002",
+      symptom: "Spindle high-frequency vibration during heavy roughing pass at 6000 RPM. Conflicting previous maintenance notes on drive belt vs spindle bearings.",
+      cat: "ABNORMAL_NOISE",
+      priority: "HIGH",
+      rationale: "Vibration threshold exceeded ISO Class 1 limit (2.6 mm/s vs 1.8 mm/s standard)."
+    }
+  ];
+
+  for (const oi of openIncidents) {
+    await db.query(
+      `INSERT INTO incidents (
+        id, report_number, organization_id, reporter_id, site_id, machine_id,
+        input_channel, symptom_text, symptom_category, recurrence_claimed,
+        urgency_suggestion, urgency_rationale, missing_fields, status, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, 'VOICE', $7, $8, true, $9, $10, '[]', 'AWAITING_REVIEW', NOW() - INTERVAL '3 hours')`,
+      [
+        oi.id, oi.repNum, orgId, workerId, site1, oi.mchId,
+        oi.symptom, oi.cat, oi.priority, oi.rationale
+      ]
+    );
+
+    await db.query(
+      `INSERT INTO incident_evidence (id, incident_id, field_name, label, raw_value, source_reference)
+       VALUES 
+       ($1, $2, 'symptom_text', 'REPORTED', $3, 'Voice note transcript via Sarvam ASR'),
+       ($4, $5, 'machine_id', 'RETRIEVED', $6, 'Asset tag acoustic match in Bay'),
+       ($7, $8, 'urgency_suggestion', 'SUGGESTED', $9, 'LLM Risk Evaluation Matrix')`,
+      [
+        `ev-${oi.id}-1`, oi.id, oi.symptom,
+        `ev-${oi.id}-2`, oi.id, oi.mchId,
+        `ev-${oi.id}-3`, oi.id, oi.priority
+      ]
+    );
+  }
+
+  // B. 2 Incidents in Awaiting Supervisor Approval (Converted to WO with AWAITING_APPROVAL)
+  const approvalOrders = [
+    {
+      incId: "live-inc-03",
+      woId: "live-wo-01",
+      repNum: "INC-2026-0011",
+      woNum: "WO-2026-0011",
+      mchId: "mch-004",
+      symptom: "Main conveyor belt 4 tensioner roller wobble and intermittent slip under 300kg payload",
+      cat: "MECHANICAL_JAM",
+      priority: "HIGH"
+    },
+    {
+      incId: "live-inc-04",
+      woId: "live-wo-02",
+      repNum: "INC-2026-0012",
+      woNum: "WO-2026-0012",
+      mchId: "mch-008",
+      symptom: "Secondary hydraulic press pressure relief valve weeping oil at valve block flange",
+      cat: "FLUID_LEAKAGE",
+      priority: "MEDIUM"
+    }
+  ];
+
+  for (const ao of approvalOrders) {
+    await db.query(
+      `INSERT INTO incidents (
+        id, report_number, organization_id, reporter_id, site_id, machine_id,
+        input_channel, symptom_text, symptom_category, recurrence_claimed,
+        urgency_suggestion, urgency_rationale, missing_fields, status, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, 'TEXT', $7, $8, false, $9, 'Pending 4-Way Decision Approval', '[]', 'CONVERTED_TO_WORK_ORDER', NOW() - INTERVAL '5 hours')`,
+      [
+        ao.incId, ao.repNum, orgId, workerId, site1, ao.mchId,
+        ao.symptom, ao.cat, ao.priority
+      ]
+    );
+
+    await db.query(
+      `INSERT INTO work_orders (
+        id, work_order_number, incident_id, machine_id, priority, status, created_at
+      ) VALUES ($1, $2, $3, $4, $5, 'AWAITING_APPROVAL', NOW() - INTERVAL '4 hours')`,
+      [
+        ao.woId, ao.woNum, ao.incId, ao.mchId, ao.priority
+      ]
+    );
+  }
+
+  // C. 2 Active Work Orders assigned to Rajesh Kumar (1 IN_PROGRESS, 1 ASSIGNED)
+  const activeOrders = [
+    {
+      incId: "live-inc-05",
+      woId: "live-wo-03",
+      repNum: "INC-2026-0013",
+      woNum: "WO-2026-0013",
+      mchId: "mch-005",
+      symptom: "Hydraulic press seal bypass detected during pressure maintenance check",
+      cat: "FLUID_LEAKAGE",
+      priority: "CRITICAL",
+      status: "IN_PROGRESS",
+      findings: "Piston rod gland seal shows surface micro-cracks. Cylinder bore inspects clean."
+    },
+    {
+      incId: "live-inc-06",
+      woId: "live-wo-04",
+      repNum: "INC-2026-0014",
+      woNum: "WO-2026-0014",
+      mchId: "mch-001",
+      symptom: "Drive pulley screeching noise and intermittent speed oscillation",
+      cat: "ABNORMAL_NOISE",
+      priority: "HIGH",
+      status: "ASSIGNED",
+      findings: ""
+    }
+  ];
+
+  for (const act of activeOrders) {
+    await db.query(
+      `INSERT INTO incidents (
+        id, report_number, organization_id, reporter_id, site_id, machine_id,
+        input_channel, symptom_text, symptom_category, recurrence_claimed,
+        urgency_suggestion, urgency_rationale, missing_fields, status, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, 'VOICE', $7, $8, true, $9, 'Approved for immediate execution', '[]', 'CONVERTED_TO_WORK_ORDER', NOW() - INTERVAL '8 hours')`,
+      [
+        act.incId, act.repNum, orgId, workerId, site1, act.mchId,
+        act.symptom, act.cat, act.priority
+      ]
+    );
+
+    await db.query(
+      `INSERT INTO work_orders (
+        id, work_order_number, incident_id, machine_id, priority, status,
+        approved_by_id, approved_at, assigned_technician_id, assigned_at,
+        technician_findings, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW() - INTERVAL '7 hours', $8, NOW() - INTERVAL '6 hours', $9, NOW() - INTERVAL '8 hours')`,
+      [
+        act.woId, act.woNum, act.incId, act.mchId, act.priority, act.status,
+        supId, tech1Id, act.findings
+      ]
+    );
+
+    await db.query(
+      `INSERT INTO work_order_status_history (id, work_order_id, from_status, to_status, changed_by_id, notes, timestamp)
+       VALUES ($1, $2, 'APPROVED', 'ASSIGNED', $3, 'Assigned to Rajesh Kumar', NOW() - INTERVAL '6 hours')`,
+      [`wosh-${act.woId}-asgn`, act.woId, supId]
+    );
+
+    if (act.status === 'IN_PROGRESS') {
+      await db.query(
+        `INSERT INTO work_order_status_history (id, work_order_id, from_status, to_status, changed_by_id, notes, timestamp)
+         VALUES ($1, $2, 'ASSIGNED', 'IN_PROGRESS', $3, 'Technician on-site at Stamping Bay', NOW() - INTERVAL '3 hours')`,
+        [`wosh-${act.woId}-prog`, act.woId, tech1Id]
+      );
+    }
+  }
+
+  // D. 1 Work Order in RESOLVED (Pending supervisor verification)
+  const resolvedOrder = {
+    incId: "live-inc-07",
+    woId: "live-wo-05",
+    repNum: "INC-2026-0015",
+    woNum: "WO-2026-0015",
+    mchId: "mch-006",
+    symptom: "Compressor air oil separator high delta-P warning (> 0.8 bar drop)",
+    cat: "OVERHEATING",
+    priority: "MEDIUM",
+    findings: "Filter element loaded with particulate residue. Cooler face cleared.",
+    resolution: "Replaced filter element PT-FL-707 and flushed oil return scavenger line. Delta-P restored to 0.15 bar."
+  };
+
+  await db.query(
+    `INSERT INTO incidents (
+      id, report_number, organization_id, reporter_id, site_id, machine_id,
+      input_channel, symptom_text, symptom_category, recurrence_claimed,
+      urgency_suggestion, urgency_rationale, missing_fields, status, created_at
+    ) VALUES ($1, $2, $3, $4, $5, $6, 'TEXT', $7, $8, false, $9, 'Resolved by technician', '[]', 'CONVERTED_TO_WORK_ORDER', NOW() - INTERVAL '12 hours')`,
+    [
+      resolvedOrder.incId, resolvedOrder.repNum, orgId, workerId, site1, resolvedOrder.mchId,
+      resolvedOrder.symptom, resolvedOrder.cat, resolvedOrder.priority
+    ]
+  );
+
+  await db.query(
+    `INSERT INTO work_orders (
+      id, work_order_number, incident_id, machine_id, priority, status,
+      approved_by_id, approved_at, assigned_technician_id, assigned_at,
+      technician_findings, resolution_summary, created_at
+    ) VALUES ($1, $2, $3, $4, $5, 'RESOLVED', $6, NOW() - INTERVAL '11 hours', $7, NOW() - INTERVAL '10 hours', $8, $9, NOW() - INTERVAL '12 hours')`,
+    [
+      resolvedOrder.woId, resolvedOrder.woNum, resolvedOrder.incId, resolvedOrder.mchId, resolvedOrder.priority,
+      supId, tech1Id, resolvedOrder.findings, resolvedOrder.resolution
+    ]
+  );
+
+  console.log("✅ [SEED] Seeded realistic active lifecycle states: 2 Open Incidents, 2 Awaiting Approvals, 2 Active Work Orders, 1 Pending Verification, 8 Staggered Historical Cases.");
 }
 
 if (require.main === module) {
