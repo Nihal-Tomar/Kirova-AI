@@ -199,19 +199,20 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onLaunchStudio, onExpl
         <div style={{ display:'inline-flex', alignItems:'center', gap:'10px', background:'rgba(0,0,0,0.05)', border:'1px solid rgba(0,0,0,0.1)', borderRadius:'9999px', padding:'6px 18px', marginBottom:'20px' }}>
           <span style={{ width:'7px', height:'7px', background:'#10B981', borderRadius:'50%', display:'inline-block', animation:'kpulse 2.5s infinite ease-in-out' }} />
           <span style={{ fontFamily:'monospace', fontSize:'11.5px', fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:'#4B5563' }}>
-            Evidence-Driven Industrial Maintenance Intelligence · From Voice to Verified Action
+            VOICE TO VERIFIED ACTION · INDUSTRIAL EVIDENCE GRAPH
           </span>
         </div>
 
         {/* Hero Headline */}
         <h1 style={{ fontFamily:"'Instrument Serif','DM Serif Display',Georgia,serif", fontSize:'clamp(2.8rem,6.2vw,5.2rem)', fontWeight:400, lineHeight:1.06, letterSpacing:'-0.02em', color:'#0F172A', margin:'0 0 18px', maxWidth:'960px' }}>
-          Every machine fault has a history.<br />
-          <em style={{ fontStyle:'italic' }}>Kirova turns it into evidence-backed action.</em>
+          The Evidence Graph for<br />
+          <em style={{ fontStyle:'italic' }}>industrial maintenance.</em>
         </h1>
 
         {/* Subheadline */}
         <p style={{ fontSize:'clamp(1.05rem,1.8vw,1.25rem)', color:'#4B5563', lineHeight:1.7, maxWidth:'780px', margin:'0 auto 28px' }}>
-          Connect multilingual shop-floor fault reports, fragmented repair logs, and verified historical outcomes into an explainable Evidence Graph—so maintenance teams can compare Inspect, Repair, Replace Component, or Replace Machine with full source traceability.
+          Transform fragmented shop-floor voice and historical repair logs into verified, 4-way operational decisions.
+          Map multilingual fault reports against historical data to compare Inspect, Repair, or Replace outcomes with full traceability.
         </p>
 
         {/* CTAs */}
