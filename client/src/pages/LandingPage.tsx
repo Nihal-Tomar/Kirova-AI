@@ -2,10 +2,12 @@ import React from 'react';
 import '../styles/landing.css';
 import { Navbar } from '../components/landing/Navbar';
 import { HeroSection } from '../components/landing/HeroSection';
+import { ProblemPivotSection } from '../components/landing/ProblemPivotSection';
+import { CapabilitiesSection } from '../components/landing/CapabilitiesSection';
 import { ProductTourSection } from '../components/landing/ProductTourSection';
 import { WorkflowSection } from '../components/landing/WorkflowSection';
-import { CapabilitiesSection } from '../components/landing/CapabilitiesSection';
 import { ArchitectureSection } from '../components/landing/ArchitectureSection';
+import { RoleLaunchpadSection } from '../components/landing/RoleLaunchpadSection';
 import { FinalCTASection } from '../components/landing/FinalCTASection';
 import { Footer } from '../components/landing/Footer';
 
@@ -15,6 +17,7 @@ interface LandingPageProps {
   onSignUp: () => void;
   isAuthenticated?: boolean;
   userName?: string;
+  onDemoPersona?: (persona: 'SUPERVISOR' | 'TECHNICIAN' | 'WORKER') => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({
@@ -23,6 +26,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onSignUp,
   isAuthenticated = false,
   userName,
+  onDemoPersona,
 }) => {
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
@@ -30,8 +34,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   };
 
   return (
-    <div className="landing-body">
-      {/* Floating Pill Navigation */}
+    <div style={{ margin:0, padding:0, background:'#F8F7F4', overflowX:'hidden' }}>
+      {/* Sticky Navbar — fixed z-50, never overlaps sections */}
       <Navbar
         onLaunchStudio={onLaunchStudio}
         onSignIn={onSignIn}
@@ -40,35 +44,47 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         userName={userName}
       />
 
-      {/* Section A — Hero Section */}
-      <HeroSection
-        onLaunchStudio={onLaunchStudio}
-        onExploreTour={() => scrollTo('tour')}
-      />
+      {/* Architectural hairline container */}
+      <div style={{ maxWidth:'1280px', margin:'0 auto', borderLeft:'1px solid rgba(0,0,0,0.05)', borderRight:'1px solid rgba(0,0,0,0.05)', position:'relative' }}>
 
-      {/* Section B — Interactive Product Tour */}
-      <ProductTourSection onLaunchStudio={onLaunchStudio} />
+        {/* Section A — Hero */}
+        <HeroSection
+          onLaunchStudio={onLaunchStudio}
+          onExploreTour={() => scrollTo('capabilities')}
+          onDemoPersona={onDemoPersona}
+        />
 
-      {/* Section C — Workflow Demonstration */}
-      <WorkflowSection />
+        {/* Section B — Problem vs Pivot */}
+        <ProblemPivotSection />
 
-      {/* Section D — Product Capabilities */}
-      <CapabilitiesSection />
+        {/* Section C — Capabilities Bento (01–04) */}
+        <CapabilitiesSection />
 
-      {/* Section E — Architecture & Deep Tech */}
-      <ArchitectureSection />
+        {/* Section D — Interactive Evidence Graph & Case Explorer */}
+        <ProductTourSection onLaunchStudio={onLaunchStudio} />
 
-      {/* Section F — Final Call to Action */}
-      <FinalCTASection
-        onLaunchStudio={onLaunchStudio}
-        onExploreCapabilities={() => scrollTo('capabilities')}
-      />
+        {/* Section E — I–IV Workflow Split + Engine Inspector */}
+        <WorkflowSection />
 
-      {/* Section G — Footer */}
-      <Footer
-        onLaunchStudio={onLaunchStudio}
-        onSignIn={onSignIn}
-      />
+        {/* Section F — Architecture & Ingestion Marquee */}
+        <ArchitectureSection />
+
+        {/* Section G — Role Experience Launchpad */}
+        <RoleLaunchpadSection
+          onDemoPersona={onDemoPersona}
+          onLaunchStudio={onLaunchStudio}
+        />
+
+        {/* Section H — Final CTA */}
+        <FinalCTASection
+          onLaunchStudio={onLaunchStudio}
+          onExploreCapabilities={() => scrollTo('capabilities')}
+          onSignIn={onSignIn}
+        />
+      </div>
+
+      {/* Footer — full bleed */}
+      <Footer onLaunchStudio={onLaunchStudio} onSignIn={onSignIn} />
     </div>
   );
 };
