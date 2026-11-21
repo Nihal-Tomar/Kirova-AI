@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import fs from "fs";
 import { config } from "../config/env";
 
 export interface AuthUser {
@@ -43,6 +44,9 @@ export function verifyToken(token: string): AuthUser | null {
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (req.file && fs.existsSync(req.file.path)) {
+      try { fs.unlinkSync(req.file.path); } catch {}
+    }
     res.status(401).json({ error: "UNAUTHORIZED", message: "Authentication required" });
     return;
   }
@@ -51,6 +55,9 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
   const user = verifyToken(token);
 
   if (!user) {
+    if (req.file && fs.existsSync(req.file.path)) {
+      try { fs.unlinkSync(req.file.path); } catch {}
+    }
     res.status(401).json({ error: "INVALID_TOKEN", message: "Invalid or expired token" });
     return;
   }

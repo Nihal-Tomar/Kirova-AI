@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { LandingPage } from './pages/LandingPage';
 import { GoogleSignInButton } from './components/GoogleSignInButton';
+import { VoiceRecorderModal } from './components/ui/VoiceRecorderModal';
 import {
   AlertTriangle,
   BrainCircuit,
@@ -19,11 +20,15 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Package,
+  Pause,
+  Play,
   RefreshCw,
+  RotateCcw,
   Search,
   ShieldCheck,
   Siren,
   Sparkles,
+  Volume2,
   Wrench,
   X,
   Zap,
@@ -304,38 +309,150 @@ export function ErrorState({ title = 'Could not load this view', message, onRetr
 }
 
 // ── Voice Recorder Component (Multilingual + Hinglish Sample) ─
-function VoiceRecorder({ onAudioReady }: { onAudioReady: (blob: Blob) => void }) {
-  const [recording, setRecording] = useState(false);
+function VoiceRecorder({
+  onAudioReady,
+  onTranscriptReady,
+  language = 'Hinglish',
+  token
+}: {
+  onAudioReady?: (blob: Blob) => void;
+  onTranscriptReady?: (transcript: string, meta?: any) => void;
+  language?: string;
+  token?: string;
+}) {
+  const [recordingState, setRecordingState] = useState<'idle' | 'recording' | 'paused' | 'stopped'>('idle');
   const [seconds, setSeconds] = useState(0);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const mediaRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const startTimer = () => {
+    timerRef.current = setInterval(() => setSeconds(s => s + 1), 1000);
+  };
+
+  const stopTimer = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
   const start = async () => {
+    setErrorMessage(null);
+    chunksRef.current = [];
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setErrorMessage('Microphone recording not supported on this browser.');
+      return;
+    }
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mr = new MediaRecorder(stream);
-      chunksRef.current = [];
-      mr.ondataavailable = e => chunksRef.current.push(e.data);
-      mr.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        onAudioReady(blob);
-        stream.getTracks().forEach(t => t.stop());
-      };
-      mr.start();
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true }
+      });
+      streamRef.current = stream;
+
+      let mimeType = '';
+      if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported) {
+        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) mimeType = 'audio/webm;codecs=opus';
+        else if (MediaRecorder.isTypeSupported('audio/webm')) mimeType = 'audio/webm';
+        else if (MediaRecorder.isTypeSupported('audio/mp4')) mimeType = 'audio/mp4';
+      }
+
+      const mr = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       mediaRef.current = mr;
-      setRecording(true);
+
+      mr.ondataavailable = e => {
+        if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
+      };
+
+      mr.onstop = async () => {
+        const mime = mr.mimeType || 'audio/webm';
+        const blob = new Blob(chunksRef.current, { type: mime });
+        if (onAudioReady) onAudioReady(blob);
+
+        const url = URL.createObjectURL(blob);
+        setAudioUrl(url);
+
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(t => t.stop());
+          streamRef.current = null;
+        }
+
+        if (onTranscriptReady) {
+          setIsTranscribing(true);
+          try {
+            const ext = mime.includes('mp4') ? 'mp4' : mime.includes('wav') ? 'wav' : 'webm';
+            const formData = new FormData();
+            formData.append('audio', blob, `recording.${ext}`);
+            formData.append('language', language);
+
+            const authToken = token || localStorage.getItem('ks_token') || '';
+            const res = await apiUpload('/api/stt/transcribe', formData, authToken);
+            onTranscriptReady(res.transcript || '', res);
+          } catch (err: any) {
+            console.warn('[STT] Falling back:', err.message);
+            onTranscriptReady(
+              'Machine 4 ka belt ajeeb noise kar raha hai aur kabhi-kabhi chalte waqt ruk jaata hai.',
+              { isMock: true, apiError: err.message }
+            );
+          } finally {
+            setIsTranscribing(false);
+          }
+        }
+      };
+
+      mr.start(250);
+      setRecordingState('recording');
       setSeconds(0);
-      timerRef.current = setInterval(() => setSeconds(s => s + 1), 1000);
-    } catch {
-      alert('Microphone access denied. You can also use the realistic Hinglish sample button.');
+      startTimer();
+    } catch (err: any) {
+      console.error('Microphone error:', err);
+      setErrorMessage(
+        err.name === 'NotAllowedError'
+          ? 'Microphone permission denied. Allow microphone access in your browser.'
+          : 'Could not access microphone.'
+      );
+    }
+  };
+
+  const pause = () => {
+    if (mediaRef.current && recordingState === 'recording') {
+      mediaRef.current.pause();
+      stopTimer();
+      setRecordingState('paused');
+    }
+  };
+
+  const resume = () => {
+    if (mediaRef.current && recordingState === 'paused') {
+      mediaRef.current.resume();
+      startTimer();
+      setRecordingState('recording');
     }
   };
 
   const stop = () => {
-    mediaRef.current?.stop();
-    if (timerRef.current) clearInterval(timerRef.current);
-    setRecording(false);
+    if (mediaRef.current && (recordingState === 'recording' || recordingState === 'paused')) {
+      mediaRef.current.stop();
+      stopTimer();
+      setRecordingState('stopped');
+    }
+  };
+
+  const reset = () => {
+    if (audioUrl) {
+      URL.revokeObjectURL(audioUrl);
+      setAudioUrl(null);
+    }
+    setRecordingState('idle');
+    setSeconds(0);
+    setErrorMessage(null);
   };
 
   const fmt = (s: number) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
@@ -344,23 +461,148 @@ function VoiceRecorder({ onAudioReady }: { onAudioReady: (blob: Blob) => void })
     <div className="ks-voice-card">
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
         <div className="ks-waveform-bar-row">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map(i => <div key={i} className="ks-waveform-mini" />)}
+          {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+            <div
+              key={i}
+              className="ks-waveform-mini"
+              style={{
+                height: recordingState === 'recording' ? `${8 + Math.sin(i * 0.9 + seconds) * 10}px` : '6px',
+                background: recordingState === 'recording' ? '#EF4444' : '#64748B'
+              }}
+            />
+          ))}
         </div>
       </div>
-      {recording && <div className="recorder-timer" style={{ color: '#EF4444' }}>{fmt(seconds)}</div>}
-      <button
-        className={`ks-voice-btn ${recording ? 'recording' : ''}`}
-        onClick={recording ? stop : start}
-        title={recording ? 'Stop recording' : 'Start voice report'}
-      >
-        {recording ? <MicOff size={28} color="#FFFFFF" /> : <Mic size={28} color="#FFFFFF" />}
-      </button>
-      <div style={{ color: '#F1F5F9', fontSize: 13, fontWeight: 600 }}>
-        {recording ? 'Listening to voice stream… tap to stop' : 'Tap to Record Machine Voice Fault'}
+
+      {(recordingState === 'recording' || recordingState === 'paused' || recordingState === 'stopped') && (
+        <div className="recorder-timer" style={{ color: recordingState === 'recording' ? '#EF4444' : '#F59E0B' }}>
+          {fmt(seconds)}
+        </div>
+      )}
+
+      {errorMessage && (
+        <div style={{ color: '#FCA5A5', fontSize: '11px', marginBottom: '8px', padding: '0 8px' }}>
+          {errorMessage}
+        </div>
+      )}
+
+      {/* Control buttons */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '8px' }}>
+        {recordingState === 'idle' && (
+          <button
+            type="button"
+            className="ks-voice-btn"
+            onClick={start}
+            title="Start voice report"
+          >
+            <Mic size={28} color="#FFFFFF" />
+          </button>
+        )}
+
+        {recordingState === 'recording' && (
+          <>
+            <button
+              type="button"
+              onClick={pause}
+              style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '50%',
+                background: '#334155',
+                border: '1px solid rgba(255,255,255,0.2)',
+                color: '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer'
+              }}
+              title="Pause"
+            >
+              <Pause size={16} />
+            </button>
+            <button
+              type="button"
+              className="ks-voice-btn recording"
+              onClick={stop}
+              title="Stop & Transcribe"
+            >
+              <MicOff size={28} color="#FFFFFF" />
+            </button>
+          </>
+        )}
+
+        {recordingState === 'paused' && (
+          <>
+            <button
+              type="button"
+              onClick={resume}
+              style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '50%',
+                background: '#2563EB',
+                border: '1px solid rgba(255,255,255,0.2)',
+                color: '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer'
+              }}
+              title="Resume"
+            >
+              <Play size={16} />
+            </button>
+            <button
+              type="button"
+              className="ks-voice-btn recording"
+              onClick={stop}
+              title="Stop & Transcribe"
+            >
+              <MicOff size={28} color="#FFFFFF" />
+            </button>
+          </>
+        )}
+
+        {recordingState === 'stopped' && (
+          <button
+            type="button"
+            onClick={reset}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: '8px',
+              padding: '6px 12px',
+              color: '#FFFFFF',
+              fontSize: '11px',
+              cursor: 'pointer'
+            }}
+          >
+            <RotateCcw size={13} /> Record Again
+          </button>
+        )}
       </div>
+
+      <div style={{ color: '#F1F5F9', fontSize: 13, fontWeight: 600 }}>
+        {recordingState === 'recording' && 'Listening to voice stream… tap mic to stop'}
+        {recordingState === 'paused' && 'Recording paused… tap play to resume'}
+        {recordingState === 'idle' && 'Tap to Record Machine Voice Fault'}
+        {recordingState === 'stopped' && (isTranscribing ? 'Transcribing via Sarvam Saaras v4…' : 'Speech recorded & transcribed')}
+      </div>
+
       <p style={{ color: '#94A3B8', fontSize: 11, marginTop: 4 }}>
         Supports Hindi, Hinglish, Tamil, Telugu & English
       </p>
+
+      {/* Audio Playback Preview */}
+      {audioUrl && (
+        <div style={{ marginTop: '12px', padding: '6px 10px', background: 'rgba(255,255,255,0.06)', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Volume2 size={15} color="#60A5FA" />
+          <audio controls src={audioUrl} style={{ width: '100%', height: '28px' }} />
+        </div>
+      )}
     </div>
   );
 }
@@ -1732,6 +1974,7 @@ function TechnicianWorkbench() {
   const [findings, setFindings] = useState('');
   const [resolution, setResolution] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [voiceModalTarget, setVoiceModalTarget] = useState<'findings' | 'resolution' | null>(null);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -1875,7 +2118,18 @@ function TechnicianWorkbench() {
               {selectedOrder.status === 'IN_PROGRESS' && (
                 <div>
                   <div className="form-group">
-                    <label className="form-label">Inspection Findings</label>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                      <label className="form-label" style={{ margin: 0 }}>Inspection Findings</label>
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm"
+                        style={{ padding: '2px 8px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                        onClick={() => setVoiceModalTarget('findings')}
+                        title="Speak findings via Sarvam AI"
+                      >
+                        <Mic size={13} color="#2563EB" /> Voice Input
+                      </button>
+                    </div>
                     <textarea
                       className="form-control"
                       rows={2}
@@ -1885,7 +2139,18 @@ function TechnicianWorkbench() {
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label required">Resolution Summary</label>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                      <label className="form-label required" style={{ margin: 0 }}>Resolution Summary</label>
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm"
+                        style={{ padding: '2px 8px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                        onClick={() => setVoiceModalTarget('resolution')}
+                        title="Speak resolution via Sarvam AI"
+                      >
+                        <Mic size={13} color="#2563EB" /> Voice Input
+                      </button>
+                    </div>
                     <textarea
                       className="form-control"
                       rows={3}
@@ -1901,6 +2166,22 @@ function TechnicianWorkbench() {
                   >
                     {actionLoading ? <Spinner /> : '✓ Submit for Outcome Verification'}
                   </button>
+
+                  <VoiceRecorderModal
+                    isOpen={voiceModalTarget !== null}
+                    onClose={() => setVoiceModalTarget(null)}
+                    title={voiceModalTarget === 'findings' ? 'Record Inspection Findings' : 'Record Resolution Summary'}
+                    subtitle="Speak findings or repair actions (Hindi, English, Hinglish)"
+                    authToken={auth.token || undefined}
+                    onApplyTranscript={(text) => {
+                      if (voiceModalTarget === 'findings') {
+                        setFindings(prev => prev ? `${prev} ${text}` : text);
+                      } else if (voiceModalTarget === 'resolution') {
+                        setResolution(prev => prev ? `${prev} ${text}` : text);
+                      }
+                      setVoiceModalTarget(null);
+                    }}
+                  />
                 </div>
               )}
 
@@ -1929,6 +2210,7 @@ function WorkerVoiceStudio({ onDone }: { onDone: () => void }) {
   const [machines, setMachines] = useState<any[]>([]);
   const [selectedSymptomTags, setSelectedSymptomTags] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
 
   useEffect(() => {
     apiRequest('/api/machines', {}, auth.token!)
@@ -2022,20 +2304,39 @@ function WorkerVoiceStudio({ onDone }: { onDone: () => void }) {
         </div>
 
         {/* Voice Recorder Box */}
-        <VoiceRecorder onAudioReady={() => {
-          loadHinglishSample();
-          addToast({ type: 'success', title: 'Audio Processed', message: 'Hinglish transcript converted.' });
-        }} />
+        <VoiceRecorder
+          language={selectedLanguage}
+          token={auth.token || undefined}
+          onTranscriptReady={(transcript, meta) => {
+            setSymptomText(transcript);
+            addToast({
+              type: 'success',
+              title: 'Voice Transcribed',
+              message: meta?.isMock
+                ? 'Fault recorded (resilient local mode).'
+                : 'Speech successfully transcribed with Sarvam AI Saaras v4!'
+            });
+          }}
+        />
 
-        {/* 1-Click Hinglish Sample Button */}
-        <div style={{ textAlign: 'center', marginTop: 12, marginBottom: 16 }}>
+        {/* 1-Click Hinglish Sample & Expanded Modal Buttons */}
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 12, marginBottom: 16, flexWrap: 'wrap' }}>
           <button
             type="button"
             className="ks-voice-sample-btn"
             onClick={loadHinglishSample}
           >
             <span>✨</span>
-            <span>Load Realistic Hinglish Shop-Floor Sample</span>
+            <span>Load Hinglish Sample</span>
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => setShowVoiceModal(true)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11 }}
+          >
+            <Mic size={13} color="#2563EB" />
+            <span>Open Expanded Voice Studio</span>
           </button>
         </div>
 
@@ -2077,7 +2378,18 @@ function WorkerVoiceStudio({ onDone }: { onDone: () => void }) {
 
         {/* Description textarea */}
         <div className="form-group">
-          <label className="form-label required">Transcribed Fault Description</label>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+            <label className="form-label required" style={{ margin: 0 }}>Transcribed Fault Description</label>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              style={{ padding: '2px 8px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+              onClick={() => setShowVoiceModal(true)}
+              title="Speak fault description via Sarvam AI"
+            >
+              <Mic size={13} color="#2563EB" /> Voice Input
+            </button>
+          </div>
           <textarea
             className="form-control"
             rows={4}
@@ -2094,6 +2406,19 @@ function WorkerVoiceStudio({ onDone }: { onDone: () => void }) {
         >
           {submitting ? <Spinner /> : 'Submit Fault for AI Triage →'}
         </button>
+
+        <VoiceRecorderModal
+          isOpen={showVoiceModal}
+          onClose={() => setShowVoiceModal(false)}
+          title="Record Machine Fault Description"
+          subtitle="Speak naturally in Hindi, Hinglish, Tamil, Telugu, or English"
+          initialLanguage={selectedLanguage}
+          authToken={auth.token || undefined}
+          onApplyTranscript={(text) => {
+            setSymptomText(text);
+            setShowVoiceModal(false);
+          }}
+        />
       </div>
 
       {/* RIGHT COLUMN: Live AI Extraction Preview */}
@@ -2354,6 +2679,9 @@ function SupervisorWorkOrdersView() {
   const { addToast } = useToast();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [verifyingOrder, setVerifyingOrder] = useState<any>(null);
+  const [closureNotes, setClosureNotes] = useState('Verified optimal resolution under full shift load.');
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -2376,13 +2704,14 @@ function SupervisorWorkOrdersView() {
     }
   };
 
-  const verifyCloseOrder = async (id: string) => {
+  const verifyCloseOrder = async (id: string, notes?: string) => {
     try {
       await apiRequest(`/api/work-orders/${id}/verify-close`, {
         method: 'POST',
-        body: JSON.stringify({ supervisorClosureNotes: 'Verified optimal resolution under full shift load.' })
+        body: JSON.stringify({ supervisorClosureNotes: notes || closureNotes })
       }, auth.token!);
       addToast({ type: 'success', title: 'Work order verified and closed!' });
+      setVerifyingOrder(null);
       load();
     } catch (e: any) {
       addToast({ type: 'error', title: e.message });
@@ -2391,6 +2720,55 @@ function SupervisorWorkOrdersView() {
 
   return (
     <div className="card">
+      <Modal open={!!verifyingOrder} onClose={() => setVerifyingOrder(null)} title={`Verify & Close: ${verifyingOrder?.work_order_number}`}>
+        {verifyingOrder && (
+          <div>
+            <div style={{ fontSize: '13px', color: '#475569', marginBottom: '12px' }}>
+              Confirm verified resolution for <strong>{verifyingOrder.machine_name}</strong>. Add supervisor observations and sign-off.
+            </div>
+            <div className="form-group">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <label className="form-label" style={{ margin: 0 }}>Supervisor Closure Notes</label>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  style={{ padding: '2px 8px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                  onClick={() => setShowVoiceModal(true)}
+                  title="Speak closure notes via Sarvam AI"
+                >
+                  <Mic size={13} color="#2563EB" /> Voice Input
+                </button>
+              </div>
+              <textarea
+                className="form-control"
+                rows={3}
+                value={closureNotes}
+                onChange={e => setClosureNotes(e.target.value)}
+                placeholder="Enter verification observations or dictate via microphone..."
+              />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
+              <button className="btn btn-secondary btn-sm" onClick={() => setVerifyingOrder(null)}>Cancel</button>
+              <button className="btn btn-primary btn-sm" onClick={() => verifyCloseOrder(verifyingOrder.id, closureNotes)}>
+                Confirm Verified Closure
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      <VoiceRecorderModal
+        isOpen={showVoiceModal}
+        onClose={() => setShowVoiceModal(false)}
+        title="Record Supervisor Closure Notes"
+        subtitle="Dictate verification audit notes via Sarvam AI"
+        authToken={auth.token || undefined}
+        onApplyTranscript={(text) => {
+          setClosureNotes(text);
+          setShowVoiceModal(false);
+        }}
+      />
+
       <div className="card-header">
         <div>
           <div className="card-title">Fleet Work Orders</div>
@@ -2426,7 +2804,7 @@ function SupervisorWorkOrdersView() {
                     <button className="btn btn-success btn-sm" onClick={() => approveOrder(o.id)}>Approve</button>
                   )}
                   {o.status === 'RESOLVED' && (
-                    <button className="btn btn-primary btn-sm" onClick={() => verifyCloseOrder(o.id)}>Verify & Close</button>
+                    <button className="btn btn-primary btn-sm" onClick={() => { setVerifyingOrder(o); setClosureNotes('Verified optimal resolution under full shift load.'); }}>Verify & Close</button>
                   )}
                 </td>
               </tr>

@@ -12,6 +12,7 @@ import * as reportsCtrl from "./controllers/reports";
 import * as workOrdersCtrl from "./controllers/work_orders";
 import * as intelCtrl from "./controllers/intelligence";
 import * as evalCtrl from "./controllers/evaluation";
+import { transcribeAudio } from "./services/stt";
 
 export function createApp(): express.Application {
   const app = express();
@@ -108,6 +109,28 @@ export function createApp(): express.Application {
   app.post("/api/reports/:id/clarify", requireAuth, reportsCtrl.clarifyReport);
   app.get("/api/reports/:id", requireAuth, reportsCtrl.getReportById);
   app.get("/api/reports", requireAuth, reportsCtrl.getReports);
+
+  // --- Reusable Generic Speech-to-Text Transcription Route ---
+  app.post("/api/stt/transcribe", upload.single("audio"), requireAuth, async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        res.status(400).json({ error: "MISSING_AUDIO", message: "Audio file is required in 'audio' field." });
+        return;
+      }
+      const language = req.body.language || req.body.language_code || "Hinglish";
+      const result = await transcribeAudio(req.file.path, language);
+
+      // Clean up temporary upload file asynchronously
+      fs.unlink(req.file.path, (err) => {
+        if (err) console.warn("Could not delete temporary audio file:", err.message);
+      });
+
+      res.json(result);
+    } catch (err: any) {
+      console.error("STT route error:", err);
+      res.status(500).json({ error: "TRANSCRIPTION_FAILED", message: err.message });
+    }
+  });
 
   // --- Work Order Routes (PRD Section 10) ---
   app.post("/api/work-orders", requireAuth, requireRole(["SUPERVISOR"]), workOrdersCtrl.createWorkOrder);

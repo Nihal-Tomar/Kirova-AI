@@ -75,6 +75,7 @@ export async function createReport(req: Request, res: Response): Promise<void> {
 export async function transcribeReport(req: Request, res: Response): Promise<void> {
   const { id } = req.params;
   const user = req.user!;
+  const requestedLanguage = req.body?.language || req.body?.language_code || "Hinglish";
 
   const incRes = await db.query(
     "SELECT * FROM incidents WHERE id = $1 AND organization_id = $2",
@@ -91,7 +92,7 @@ export async function transcribeReport(req: Request, res: Response): Promise<voi
   let isMock = true;
 
   if (inc.audio_file_path && fs.existsSync(inc.audio_file_path)) {
-    const sttRes = await transcribeAudio(inc.audio_file_path);
+    const sttRes = await transcribeAudio(inc.audio_file_path, requestedLanguage);
     transcript = sttRes.transcript;
     isMock = sttRes.isMock;
   } else if (!transcript) {
