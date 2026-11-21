@@ -150,14 +150,14 @@ const MICRO: Record<string, React.ReactNode> = {
 };
 
 export const CapabilitiesSection: React.FC = () => (
-  <section id="capabilities" style={{ background:'#F8F7F4', borderTop:'1px solid rgba(0,0,0,0.07)', scrollMarginTop:'112px' }}>
+  <section id="capabilities" style={{ background:'#F8F7F4', borderTop:'1px solid rgba(0,0,0,0.07)', scrollMarginTop:'112px', width:'100%', boxSizing:'border-box' }}>
     {/* Header */}
-    <div style={{ maxWidth:'1180px', margin:'0 auto', padding:'76px 24px 48px', borderBottom:'1px solid rgba(0,0,0,0.07)' }}>
+    <div style={{ maxWidth:'1180px', margin:'0 auto', padding:'76px 24px 48px', borderBottom:'1px solid rgba(0,0,0,0.07)', boxSizing:'border-box' }} className="cap-header">
       <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'14px' }}>
         <span style={{ fontFamily:'monospace', fontSize:'11.5px', color:'rgba(0,0,0,0.4)', letterSpacing:'0.12em', textTransform:'uppercase', fontWeight:600 }}>C / Capabilities · 01 — 04</span>
       </div>
       <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', gap:'24px', flexWrap:'wrap' }}>
-        <h2 style={{ fontFamily:"'Instrument Serif','DM Serif Display',Georgia,serif", fontSize:'clamp(2.4rem,4.5vw,3.6rem)', fontWeight:400, color:'#0F172A', margin:0, lineHeight:1.1 }}>
+        <h2 style={{ fontFamily:"'Instrument Serif','DM Serif Display',Georgia,serif", fontSize:'clamp(2.2rem,4.5vw,3.6rem)', fontWeight:400, color:'#0F172A', margin:0, lineHeight:1.1 }}>
           Everything needed to<br /><em>defend a decision.</em>
         </h2>
         <p style={{ fontSize:'1.05rem', color:'#4B5563', maxWidth:'480px', margin:0, lineHeight:1.65 }}>
@@ -166,10 +166,10 @@ export const CapabilitiesSection: React.FC = () => (
       </div>
     </div>
 
-    {/* 2x2 Bento Grid */}
-    <div style={{ maxWidth:'1180px', margin:'0 auto', display:'grid', gridTemplateColumns:'1fr 1fr', borderBottom:'1px solid rgba(0,0,0,0.07)' }} className="cap-bento-grid">
+    {/* 2x2 Bento Grid (Responsive: 1 col on mobile < 768px, 2 cols on md+) */}
+    <div style={{ maxWidth:'1180px', margin:'0 auto', display:'grid', borderBottom:'1px solid rgba(0,0,0,0.07)', boxSizing:'border-box' }} className="cap-bento-grid">
       {CAPABILITIES.map((cap, i) => (
-        <div key={cap.num} style={{ padding:'48px 42px', borderRight: i%2===0 ? '1px solid rgba(0,0,0,0.07)' : 'none', borderBottom: i<2 ? '1px solid rgba(0,0,0,0.07)' : 'none', background: i===1 ? '#FFFFFF' : 'transparent', position:'relative' }}>
+        <div key={cap.num} className={`cap-card cap-card-${i}`} style={{ padding:'48px 42px', borderRight: i%2===0 ? '1px solid rgba(0,0,0,0.07)' : 'none', borderBottom: i<2 ? '1px solid rgba(0,0,0,0.07)' : 'none', background: i===1 ? '#FFFFFF' : 'transparent', position:'relative', boxSizing:'border-box' }}>
           {/* Crosshair */}
           {i===0 && <span style={{ position:'absolute', top:'12px', left:'12px', fontFamily:'monospace', fontSize:'12px', color:'rgba(0,0,0,0.18)', lineHeight:1 }}>+</span>}
 
@@ -182,11 +182,33 @@ export const CapabilitiesSection: React.FC = () => (
           <p style={{ fontSize:'0.95rem', color:'#4B5563', lineHeight:1.65, margin:'0 0 24px' }}>{cap.desc}</p>
 
           {/* Micro-UI */}
-          <div style={{ background:'rgba(0,0,0,0.025)', border:'1px solid rgba(0,0,0,0.08)', borderRadius:'14px', padding:'20px' }}>
+          <div style={{ background:'rgba(0,0,0,0.025)', border:'1px solid rgba(0,0,0,0.08)', borderRadius:'14px', padding:'20px', boxSizing:'border-box', overflow:'hidden' }} className="cap-micro-container">
             {MICRO[cap.micro]}
           </div>
         </div>
       ))}
     </div>
+
+    <style>{`
+      .cap-bento-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      @media (max-width: 768px) {
+        .cap-header {
+          padding: 48px 18px 32px !important;
+        }
+        .cap-bento-grid {
+          grid-template-columns: 1fr !important;
+        }
+        .cap-card {
+          padding: 28px 18px !important;
+          border-right: none !important;
+          border-bottom: 1px solid rgba(0,0,0,0.07) !important;
+        }
+        .cap-micro-container {
+          padding: 16px 12px !important;
+        }
+      }
+    `}</style>
   </section>
 );

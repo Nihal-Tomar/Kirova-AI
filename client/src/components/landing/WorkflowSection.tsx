@@ -120,14 +120,15 @@ export const WorkflowSection: React.FC = () => {
       </div>
 
       {/* Split screen */}
-      <div style={{ maxWidth:'1180px', margin:'0 auto', display:'grid', gridTemplateColumns:'1fr 1fr', minHeight:'540px' }} className="workflow-split-grid">
+      <div style={{ maxWidth:'1180px', margin:'0 auto', display:'grid', minHeight:'540px', boxSizing:'border-box' }} className="workflow-split-grid">
         {/* Left: Step selector */}
-        <div style={{ borderRight:'1px solid rgba(0,0,0,0.07)', padding:'0' }}>
+        <div style={{ borderRight:'1px solid rgba(0,0,0,0.07)', padding:'0', boxSizing:'border-box' }} className="workflow-left-steps">
           {STEPS.map((s, i) => (
             <button key={i} type="button" onClick={()=>setActiveStep(i)}
-              style={{ width:'100%', textAlign:'left', padding:'30px 36px', border:'none', borderBottom:'1px solid rgba(0,0,0,0.06)', background: i===activeStep ? '#FFFFFF' : 'transparent', cursor:'pointer', transition:'all 0.2s', borderLeft: i===activeStep ? '4px solid #0F172A' : '4px solid transparent', display:'flex', alignItems:'flex-start', gap:'22px' }}>
+              className="workflow-step-btn"
+              style={{ width:'100%', textAlign:'left', padding:'30px 36px', border:'none', borderBottom:'1px solid rgba(0,0,0,0.06)', background: i===activeStep ? '#FFFFFF' : 'transparent', cursor:'pointer', transition:'all 0.2s', borderLeft: i===activeStep ? '4px solid #0F172A' : '4px solid transparent', display:'flex', alignItems:'flex-start', gap:'22px', boxSizing:'border-box' }}>
               <span style={{ fontFamily:"'Instrument Serif',Georgia,serif", fontSize:'2.2rem', fontWeight:400, color: i===activeStep ? '#0F172A' : 'rgba(0,0,0,0.22)', lineHeight:1, flexShrink:0, minWidth:'32px' }}>{s.roman}</span>
-              <div>
+              <div style={{ minWidth:0, flex:1 }}>
                 <div style={{ fontSize:'1.05rem', fontWeight: i===activeStep ? 700 : 600, color: i===activeStep ? '#0F172A' : '#4B5563', marginBottom:'6px', lineHeight:1.35 }}>{s.title}</div>
                 {i===activeStep && <div style={{ fontSize:'0.95rem', color:'#4B5563', lineHeight:1.6 }}>{s.desc}</div>}
                 {i===activeStep && (
@@ -143,22 +144,22 @@ export const WorkflowSection: React.FC = () => {
         </div>
 
         {/* Right: Code inspector */}
-        <div style={{ background:'#0D1117', display:'flex', flexDirection:'column' }}>
+        <div style={{ background:'#0D1117', display:'flex', flexDirection:'column', boxSizing:'border-box', overflow:'hidden' }}>
           {/* Inspector header */}
-          <div style={{ padding:'18px 24px', borderBottom:'1px solid rgba(255,255,255,0.07)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <div>
+          <div className="workflow-inspector-header" style={{ padding:'18px 24px', borderBottom:'1px solid rgba(255,255,255,0.07)', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px', flexWrap:'wrap', boxSizing:'border-box' }}>
+            <div style={{ minWidth:0 }}>
               <div style={{ fontFamily:'monospace', fontSize:'11.5px', color:'rgba(255,255,255,0.4)', letterSpacing:'0.07em', textTransform:'uppercase', marginBottom:'2px', fontWeight:600 }}>evidence-pipeline.ts · Stage {step.roman}</div>
               <div style={{ fontSize:'13.5px', color:'rgba(255,255,255,0.85)', fontWeight:600 }}>{step.title}</div>
             </div>
-            <div style={{ display:'flex', alignItems:'center', gap:'7px', background:'rgba(16,185,129,0.12)', border:'1px solid rgba(16,185,129,0.3)', borderRadius:'9999px', padding:'5px 12px' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:'7px', background:'rgba(16,185,129,0.12)', border:'1px solid rgba(16,185,129,0.3)', borderRadius:'9999px', padding:'5px 12px', flexShrink:0 }}>
               <span style={{ width:'7px', height:'7px', background:'#10B981', borderRadius:'50%', display:'inline-block', animation:'kpulse 2.5s infinite ease-in-out' }} />
               <span style={{ fontFamily:'monospace', fontSize:'10px', color:'#34D399', letterSpacing:'0.06em', textTransform:'uppercase', fontWeight:700 }}>Deterministic Fallback + PGlite Ready</span>
             </div>
           </div>
 
           {/* Code block */}
-          <div style={{ flex:1, padding:'26px 24px', overflowY:'auto' }}>
-            <pre style={{ margin:0, fontFamily:"'JetBrains Mono','Fira Code',monospace", fontSize:'12.5px', lineHeight:1.75, color:'rgba(255,255,255,0.8)', whiteSpace:'pre-wrap', wordBreak:'break-word' }}>
+          <div style={{ flex:1, padding:'24px 20px', overflowY:'auto', overflowX:'auto', maxWidth:'100%', boxSizing:'border-box' }}>
+            <pre style={{ margin:0, fontFamily:"'JetBrains Mono','Fira Code',monospace", fontSize:'12.5px', lineHeight:1.75, color:'rgba(255,255,255,0.8)', whiteSpace:'pre-wrap', wordBreak:'break-word', maxWidth:'100%' }}>
               {step.payload.split('\n').map((line, i) => {
                 const isComment = line.trim().startsWith('//');
                 const isKey = /^\s+"\w/.test(line);
@@ -173,7 +174,7 @@ export const WorkflowSection: React.FC = () => {
           </div>
 
           {/* Step nav */}
-          <div style={{ padding:'16px 24px', borderTop:'1px solid rgba(255,255,255,0.07)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+          <div style={{ padding:'16px 20px', borderTop:'1px solid rgba(255,255,255,0.07)', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:'10px', boxSizing:'border-box' }}>
             <button type="button" onClick={()=>setActiveStep(Math.max(0,activeStep-1))} disabled={activeStep===0}
               style={{ background:'none', border:'1px solid rgba(255,255,255,0.15)', color:'rgba(255,255,255,0.7)', borderRadius:'8px', padding:'7px 16px', fontSize:'12.5px', cursor: activeStep===0 ? 'not-allowed':'pointer', opacity: activeStep===0 ? 0.35:1, fontWeight:600 }}>
               ← Previous Stage
@@ -193,7 +194,22 @@ export const WorkflowSection: React.FC = () => {
 
       <style>{`
         @keyframes kpulse{0%,100%{opacity:.85;transform:scale(1)}50%{opacity:1;transform:scale(1.28)}}
-        @media(max-width:760px){.workflow-split-grid{grid-template-columns:1fr!important}}
+        .workflow-split-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        @media(max-width:1024px){
+          .workflow-split-grid{
+            grid-template-columns:1fr !important;
+            min-height: auto !important;
+          }
+          .workflow-left-steps {
+            border-right: none !important;
+            border-bottom: 1px solid rgba(0,0,0,0.07) !important;
+          }
+          .workflow-step-btn {
+            padding: 20px 18px !important;
+          }
+        }
       `}</style>
     </section>
   );

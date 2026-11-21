@@ -13,10 +13,10 @@ export const Footer: React.FC<FooterProps> = ({ onLaunchStudio, onSignIn }) => {
   };
 
   return (
-    <footer style={{ background:'#FFFFFF', borderTop:'1px solid rgba(0,0,0,0.08)' }}>
+    <footer style={{ background:'#FFFFFF', borderTop:'1px solid rgba(0,0,0,0.08)', width:'100%', boxSizing:'border-box', overflow:'hidden' }}>
       {/* Hairline grid top border */}
-      <div style={{ maxWidth:'1180px', margin:'0 auto', padding:'64px 24px 36px' }}>
-        <div style={{ display:'grid', gridTemplateColumns:'1.8fr 1fr 1fr 1fr', gap:'48px', paddingBottom:'48px', borderBottom:'1px solid rgba(0,0,0,0.07)' }} className="footer-cols-grid">
+      <div style={{ maxWidth:'1180px', margin:'0 auto', padding:'64px 24px 36px', boxSizing:'border-box' }} className="footer-container">
+        <div style={{ display:'grid', gridTemplateColumns:'1.8fr 1fr 1fr 1fr', gap:'48px', paddingBottom:'48px', borderBottom:'1px solid rgba(0,0,0,0.07)', boxSizing:'border-box' }} className="footer-cols-grid">
 
           {/* Brand column */}
           <div>
@@ -75,7 +75,7 @@ export const Footer: React.FC<FooterProps> = ({ onLaunchStudio, onSignIn }) => {
         </div>
 
         {/* Footer bottom bar */}
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingTop:'28px', flexWrap:'wrap', gap:'14px' }}>
+        <div className="footer-bottom-bar" style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingTop:'28px', flexWrap:'wrap', gap:'14px', boxSizing:'border-box' }}>
           <div style={{ fontSize:'0.85rem', color:'#6B7280', fontFamily:'monospace' }}>
             © {year} Kirova AI — From Voice to Verified Action. Team Sudarshan.
           </div>
@@ -88,8 +88,26 @@ export const Footer: React.FC<FooterProps> = ({ onLaunchStudio, onSignIn }) => {
 
       <style>{`
         @keyframes kpulse{0%,100%{opacity:.85;transform:scale(1)}50%{opacity:1;transform:scale(1.28)}}
-        @media(max-width:760px){.footer-cols-grid{grid-template-columns:1fr 1fr!important}}
-        @media(max-width:480px){.footer-cols-grid{grid-template-columns:1fr!important}}
+        @media(max-width:1024px){
+          .footer-cols-grid{
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 36px !important;
+          }
+        }
+        @media(max-width:640px){
+          .footer-container {
+            padding: 48px 18px 32px !important;
+          }
+          .footer-cols-grid{
+            grid-template-columns: 1fr !important;
+            gap: 32px !important;
+          }
+          .footer-bottom-bar {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 14px !important;
+          }
+        }
       `}</style>
     </footer>
   );

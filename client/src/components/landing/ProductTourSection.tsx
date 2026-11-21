@@ -172,13 +172,13 @@ export const ProductTourSection: React.FC<{ onLaunchStudio: () => void }> = ({ o
       </div>
 
       {/* Scenario tabs */}
-      <div style={{ borderBottom:'1px solid rgba(255,255,255,0.08)', overflowX:'auto' }}>
-        <div style={{ maxWidth:'1180px', margin:'0 auto', display:'flex', padding:'0 24px' }}>
+      <div style={{ borderBottom:'1px solid rgba(255,255,255,0.08)', overflowX:'auto', WebkitOverflowScrolling:'touch', scrollbarWidth:'none' }} className="tour-scenario-tabs-wrap">
+        <div style={{ maxWidth:'1180px', margin:'0 auto', display:'flex', padding:'0 20px' }}>
           {SCENARIOS.map((s,i) => (
             <button key={s.id} type="button" onClick={()=>{ setActiveScenario(i); setSelectedNode(null); }}
-              style={{ flexShrink:0, padding:'16px 24px', border:'none', borderBottom: i===activeScenario ? '2.5px solid #60A5FA' : '2.5px solid transparent', background:'transparent', color: i===activeScenario ? '#FFFFFF' : 'rgba(255,255,255,0.45)', fontWeight: i===activeScenario ? 700 : 500, fontSize:'13.5px', cursor:'pointer', transition:'all 0.2s', whiteSpace:'nowrap', gap:'8px', display:'flex', alignItems:'center' }}>
+              style={{ flexShrink:0, padding:'16px 20px', border:'none', borderBottom: i===activeScenario ? '2.5px solid #60A5FA' : '2.5px solid transparent', background:'transparent', color: i===activeScenario ? '#FFFFFF' : 'rgba(255,255,255,0.45)', fontWeight: i===activeScenario ? 700 : 500, fontSize:'13.5px', cursor:'pointer', transition:'all 0.2s', whiteSpace:'nowrap', gap:'8px', display:'flex', alignItems:'center' }}>
               <span style={{ fontFamily:'monospace', fontSize:'11.5px', color: i===activeScenario ? '#60A5FA' : 'rgba(255,255,255,0.3)', marginRight:'6px', fontWeight:700 }}>0{i+1}</span>
-              {s.label.split('·')[1]?.trim()}
+              <span>{s.label.split('·')[1]?.trim()}</span>
               <span style={{ fontSize:'12px', color:'rgba(255,255,255,0.4)', fontWeight:400, marginLeft:'4px' }}>· {s.sub}</span>
             </button>
           ))}
@@ -186,28 +186,28 @@ export const ProductTourSection: React.FC<{ onLaunchStudio: () => void }> = ({ o
       </div>
 
       {/* Main explorer */}
-      <div style={{ maxWidth:'1180px', margin:'0 auto', padding:'36px 24px 72px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'28px' }} className="tour-explorer-grid">
+      <div style={{ maxWidth:'1180px', margin:'0 auto', padding:'36px 24px 72px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'28px', boxSizing:'border-box' }} className="tour-explorer-grid">
         {/* Left: Evidence Graph */}
-        <div style={{ background:'rgba(255,255,255,0.025)', border:'1px solid rgba(255,255,255,0.09)', borderRadius:'16px', padding:'26px', display:'flex', flexDirection:'column', gap:'18px' }}>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <div style={{ background:'rgba(255,255,255,0.025)', border:'1px solid rgba(255,255,255,0.09)', borderRadius:'16px', padding:'26px', display:'flex', flexDirection:'column', gap:'18px', boxSizing:'border-box', overflow:'hidden' }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'10px' }}>
             <div>
               <div style={{ fontSize:'11.5px', fontFamily:'monospace', color:'#60A5FA', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:'4px', fontWeight:700 }}>Interactive Graph Traversal</div>
               <div style={{ fontSize:'15px', fontWeight:700, color:'#FFFFFF' }}>{sc.machineName}</div>
             </div>
-            <span style={{ fontSize:'11px', fontFamily:'monospace', color:'rgba(255,255,255,0.6)', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:'5px', padding:'4px 10px', fontWeight:600 }}>{sc.machine}</span>
+            <span style={{ fontSize:'11px', fontFamily:'monospace', color:'rgba(255,255,255,0.6)', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:'5px', padding:'4px 10px', fontWeight:600, flexShrink:0 }}>{sc.machine}</span>
           </div>
 
           <MiniGraph nodes={sc.nodes} edges={sc.edges} selectedNode={selectedNode} onSelectNode={id=>setSelectedNode(prev=>prev===id?null:id)} />
 
           {/* Node detail */}
           {selNode && (
-            <div style={{ background:'rgba(37,99,235,0.1)', border:'1px solid rgba(37,99,235,0.3)', borderRadius:'12px', padding:'16px', position:'relative' }}>
+            <div style={{ background:'rgba(37,99,235,0.1)', border:'1px solid rgba(37,99,235,0.3)', borderRadius:'12px', padding:'16px', position:'relative', boxSizing:'border-box' }}>
               <button type="button" onClick={()=>setSelectedNode(null)} style={{ position:'absolute', top:12, right:14, background:'none', border:'none', color:'rgba(255,255,255,0.4)', cursor:'pointer', fontSize:'15px' }}>✕</button>
               <div style={{ fontFamily:'monospace', fontSize:'11px', color:'#60A5FA', marginBottom:'4px', textTransform:'uppercase', letterSpacing:'0.07em', fontWeight:700 }}>{selNode.type}</div>
               <div style={{ fontSize:'15px', fontWeight:700, color:'#FFFFFF', marginBottom:'3px' }}>{selNode.label}</div>
               <div style={{ fontSize:'13px', color:'rgba(255,255,255,0.65)' }}>{selNode.sub}</div>
               {selNode.type === 'OUTCOME' && (
-                <div style={{ marginTop:'10px', fontSize:'12.5px', color: OUTCOME_COLORS[selNode.label] || '#9CA3AF', fontWeight:700, fontFamily:'monospace' }}>
+                <div style={{ marginTop:'10px', fontSize:'12.5px', color: OUTCOME_COLORS[selNode.label] || '#9CA3AF', fontWeight:700, fontFamily:'monospace', lineHeight:1.5 }}>
                   Audit Status: {selNode.label} {selNode.label==='VERIFIED' ? '· Historical confidence upgraded' : selNode.label==='FAILED' ? '· Past repair failed (not recommended)' : selNode.label==='CONFLICT' ? '· Conflicting records (inspection mandatory)' : '· Unverified record'}
                 </div>
               )}
@@ -215,7 +215,7 @@ export const ProductTourSection: React.FC<{ onLaunchStudio: () => void }> = ({ o
           )}
 
           {/* Legend */}
-          <div style={{ display:'flex', gap:'16px', flexWrap:'wrap' }}>
+          <div style={{ display:'flex', gap:'14px', flexWrap:'wrap' }}>
             {Object.entries(NODE_COLORS).map(([type, cfg]) => (
               <div key={type} style={{ display:'flex', alignItems:'center', gap:'6px' }}>
                 <div style={{ width:'10px', height:'10px', borderRadius:'3px', background:cfg.bg, border:`1px solid ${cfg.border}` }} />
@@ -226,7 +226,7 @@ export const ProductTourSection: React.FC<{ onLaunchStudio: () => void }> = ({ o
         </div>
 
         {/* Right: 4-Way Decision Breakdown */}
-        <div style={{ background:'rgba(255,255,255,0.025)', border:'1px solid rgba(255,255,255,0.09)', borderRadius:'16px', padding:'26px', display:'flex', flexDirection:'column', gap:'16px' }}>
+        <div style={{ background:'rgba(255,255,255,0.025)', border:'1px solid rgba(255,255,255,0.09)', borderRadius:'16px', padding:'26px', display:'flex', flexDirection:'column', gap:'16px', boxSizing:'border-box' }}>
           <div>
             <div style={{ fontSize:'11.5px', fontFamily:'monospace', color:'#34D399', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:'4px', fontWeight:700 }}>4-Way Decision Breakdown</div>
             <div style={{ fontSize:'15px', fontWeight:700, color:'#FFFFFF' }}>Maintenance Options · {sc.machine}</div>
@@ -235,9 +235,9 @@ export const ProductTourSection: React.FC<{ onLaunchStudio: () => void }> = ({ o
           {/* Options */}
           <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
             {sc.options.map(o => (
-              <div key={o.label} style={{ background: o.active ? `${o.color}15` : 'rgba(255,255,255,0.02)', border:`1px solid ${o.active ? o.color+'60' : 'rgba(255,255,255,0.08)'}`, borderRadius:'11px', padding:'12px 16px', display:'flex', alignItems:'center', gap:'14px' }}>
-                <div style={{ width:'42px', height:'36px', background:`${o.color}22`, border:`1.5px solid ${o.color}50`, borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'14px', fontWeight:700, color:o.color, flexShrink:0, fontFamily:'monospace' }}>{o.score}</div>
-                <div style={{ flex:1 }}>
+              <div key={o.label} style={{ background: o.active ? `${o.color}15` : 'rgba(255,255,255,0.02)', border:`1px solid ${o.active ? o.color+'60' : 'rgba(255,255,255,0.08)'}`, borderRadius:'11px', padding:'12px 14px', display:'flex', alignItems:'center', gap:'12px', boxSizing:'border-box', flexWrap:'wrap' }}>
+                <div style={{ width:'40px', height:'36px', background:`${o.color}22`, border:`1.5px solid ${o.color}50`, borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'14px', fontWeight:700, color:o.color, flexShrink:0, fontFamily:'monospace' }}>{o.score}</div>
+                <div style={{ flex:'1 1 140px', minWidth:0 }}>
                   <div style={{ fontSize:'13.5px', fontWeight: o.active ? 700 : 500, color: o.active ? '#FFFFFF' : 'rgba(255,255,255,0.6)', marginBottom:'4px' }}>{o.label}</div>
                   <div style={{ height:'4px', background:'rgba(255,255,255,0.08)', borderRadius:'9999px', overflow:'hidden' }}>
                     <div style={{ width:`${o.score}%`, height:'100%', background:o.color, borderRadius:'9999px', transition:'width 0.5s ease' }} />
@@ -249,7 +249,7 @@ export const ProductTourSection: React.FC<{ onLaunchStudio: () => void }> = ({ o
           </div>
 
           {/* Recommendation box */}
-          <div style={{ background:'rgba(16,185,129,0.08)', border:'1px solid rgba(16,185,129,0.3)', borderRadius:'12px', padding:'16px' }}>
+          <div style={{ background:'rgba(16,185,129,0.08)', border:'1px solid rgba(16,185,129,0.3)', borderRadius:'12px', padding:'16px', boxSizing:'border-box' }}>
             <div style={{ fontFamily:'monospace', fontSize:'11px', color:'#34D399', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:'6px', fontWeight:700 }}>Recommendation Traceability Basis</div>
             <div style={{ fontSize:'13px', color:'rgba(255,255,255,0.8)', lineHeight:1.6, marginBottom:'10px' }}>{sc.recommendation.reasoning}</div>
             <div style={{ display:'flex', gap:'10px', flexWrap:'wrap' }}>
@@ -260,7 +260,7 @@ export const ProductTourSection: React.FC<{ onLaunchStudio: () => void }> = ({ o
 
           {/* Uncertainty warning if scenario C */}
           {sc.id === 'C' && (
-            <div style={{ background:'rgba(249,115,22,0.1)', border:'1px solid rgba(249,115,22,0.3)', borderRadius:'12px', padding:'14px 16px' }}>
+            <div style={{ background:'rgba(249,115,22,0.1)', border:'1px solid rgba(249,115,22,0.3)', borderRadius:'12px', padding:'14px 16px', boxSizing:'border-box' }}>
               <div style={{ fontFamily:'monospace', fontSize:'11px', color:'#FB923C', letterSpacing:'0.07em', textTransform:'uppercase', marginBottom:'5px', fontWeight:700 }}>⚠ Conflicting Records Detected</div>
               <div style={{ fontSize:'12.5px', color:'rgba(255,255,255,0.7)', lineHeight:1.55 }}>Two shift logs contradict each other on whether the oil separator was replaced or only cleaned. Physical diagnostic inspection is required before ordering parts.</div>
             </div>
@@ -269,7 +269,14 @@ export const ProductTourSection: React.FC<{ onLaunchStudio: () => void }> = ({ o
       </div>
 
       <style>{`
-        @media(max-width:760px){.tour-explorer-grid{grid-template-columns:1fr!important}}
+        .tour-scenario-tabs-wrap::-webkit-scrollbar { display: none; }
+        @media(max-width:1024px){
+          .tour-explorer-grid{
+            grid-template-columns:1fr !important;
+            padding: 24px 16px 52px !important;
+            gap: 20px !important;
+          }
+        }
       `}</style>
     </section>
   );

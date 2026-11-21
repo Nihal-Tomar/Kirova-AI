@@ -67,7 +67,7 @@ export const ArchitectureSection: React.FC = () => (
     </div>
 
     {/* Architecture deep tech cards */}
-    <div style={{ maxWidth:'1180px', margin:'0 auto', padding:'64px 24px 80px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'28px' }} className="arch-tech-grid">
+    <div style={{ maxWidth:'1180px', margin:'0 auto', padding:'64px 24px 80px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'28px', boxSizing:'border-box' }} className="arch-tech-grid">
       {[
         {
           icon:'🎙️',
@@ -106,7 +106,7 @@ export const ArchitectureSection: React.FC = () => (
           accentColor:'#F59E0B',
         },
       ].map(card => (
-        <div key={card.title} style={{ background:'rgba(255,255,255,0.025)', border:'1px solid rgba(255,255,255,0.09)', borderRadius:'18px', padding:'32px', display:'flex', flexDirection:'column', gap:'18px' }}>
+        <div key={card.title} className="arch-card" style={{ background:'rgba(255,255,255,0.025)', border:'1px solid rgba(255,255,255,0.09)', borderRadius:'18px', padding:'32px', display:'flex', flexDirection:'column', gap:'18px', boxSizing:'border-box' }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div style={{ width:'48px', height:'48px', background:`${card.accentColor}18`, border:`1px solid ${card.accentColor}35`, borderRadius:'12px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px' }}>{card.icon}</div>
             <span style={{ fontFamily:'monospace', fontSize:'11px', color:card.badgeColor, background:`${card.badgeColor}18`, border:`1px solid ${card.badgeColor}35`, borderRadius:'9999px', padding:'4px 12px', letterSpacing:'0.06em', textTransform:'uppercase', fontWeight:700 }}>{card.badge}</span>
@@ -127,6 +127,17 @@ export const ArchitectureSection: React.FC = () => (
       ))}
     </div>
 
-    <style>{`@media(max-width:760px){.arch-tech-grid{grid-template-columns:1fr!important}}`}</style>
+    <style>{`
+      @media(max-width:768px){
+        .arch-tech-grid{
+          grid-template-columns:1fr !important;
+          padding: 40px 16px 56px !important;
+          gap: 20px !important;
+        }
+        .arch-card {
+          padding: 24px 18px !important;
+        }
+      }
+    `}</style>
   </section>
 );

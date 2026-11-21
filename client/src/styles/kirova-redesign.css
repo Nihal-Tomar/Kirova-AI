@@ -1637,3 +1637,60 @@
 }
 
 .kirova-login-footer-note { font-size: 11px; color: #94A3B8; margin-top: 14px; text-align: center; line-height: 1.5; }
+
+/* ── Global Mobile Responsiveness & Layout Refactor Overrides ── */
+@media (max-width: 1024px) {
+  .ks-overview-split {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    padding: 14px 16px !important;
+  }
+  .page-header-actions {
+    width: 100% !important;
+    justify-content: space-between !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  .header-voice-pill {
+    display: none !important;
+  }
+  .header-search-wrap {
+    flex: 1 1 180px !important;
+    width: auto !important;
+    max-width: 100% !important;
+  }
+  .ks-workbench {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .ks-machine-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .ks-matrix-2x2 {
+    grid-template-columns: 1fr !important;
+  }
+  .ks-kpi-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+  .ks-kpi-card {
+    padding: 12px !important;
+  }
+  .ks-kpi-value {
+    font-size: 20px !important;
+  }
+  .ks-kpi-label {
+    font-size: 11px !important;
+  }
+}

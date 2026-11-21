@@ -186,45 +186,47 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onLaunchStudio, onExpl
   }, []);
 
   return (
-    <section id="hero" style={{ position:'relative', background:'#F8F7F4', display:'flex', flexDirection:'column', alignItems:'center', paddingTop:'88px', paddingBottom:'68px', paddingLeft:'24px', paddingRight:'24px', overflow:'hidden', scrollMarginTop:'80px' }}>
+    <section id="hero" className="hero-section" style={{ position:'relative', background:'#F8F7F4', display:'flex', flexDirection:'column', alignItems:'center', paddingTop:'88px', paddingBottom:'68px', paddingLeft:'24px', paddingRight:'24px', overflow:'hidden', scrollMarginTop:'80px', width:'100%', boxSizing:'border-box' }}>
       <CanvasDotGrid />
 
       {/* Architectural hairline grid crosshairs */}
       <span style={{ position:'absolute', top:'84px', left:'24px', color:'rgba(0,0,0,0.18)', fontFamily:'monospace', fontSize:'13px', userSelect:'none', lineHeight:1, zIndex:1 }}>+</span>
       <span style={{ position:'absolute', top:'84px', right:'24px', color:'rgba(0,0,0,0.18)', fontFamily:'monospace', fontSize:'13px', userSelect:'none', lineHeight:1, zIndex:1 }}>+</span>
 
-      <div style={{ position:'relative', zIndex:2, width:'100%', maxWidth:'1140px', margin:'0 auto', display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center' }}>
+      <div style={{ position:'relative', zIndex:2, width:'100%', maxWidth:'1140px', margin:'0 auto', display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', boxSizing:'border-box' }}>
 
         {/* Eyebrow pill */}
-        <div style={{ display:'inline-flex', alignItems:'center', gap:'10px', background:'rgba(0,0,0,0.05)', border:'1px solid rgba(0,0,0,0.1)', borderRadius:'9999px', padding:'6px 18px', marginBottom:'20px' }}>
-          <span style={{ width:'7px', height:'7px', background:'#10B981', borderRadius:'50%', display:'inline-block', animation:'kpulse 2.5s infinite ease-in-out' }} />
-          <span style={{ fontFamily:'monospace', fontSize:'11.5px', fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:'#4B5563' }}>
+        <div style={{ display:'inline-flex', alignItems:'center', gap:'10px', background:'rgba(0,0,0,0.05)', border:'1px solid rgba(0,0,0,0.1)', borderRadius:'9999px', padding:'6px 18px', marginBottom:'20px', maxWidth:'100%', boxSizing:'border-box' }}>
+          <span style={{ width:'7px', height:'7px', background:'#10B981', borderRadius:'50%', display:'inline-block', animation:'kpulse 2.5s infinite ease-in-out', flexShrink:0 }} />
+          <span style={{ fontFamily:'monospace', fontSize:'11.5px', fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:'#4B5563', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
             VOICE TO VERIFIED ACTION · INDUSTRIAL EVIDENCE GRAPH
           </span>
         </div>
 
         {/* Hero Headline */}
-        <h1 style={{ fontFamily:"'Instrument Serif','DM Serif Display',Georgia,serif", fontSize:'clamp(2.8rem,6.2vw,5.2rem)', fontWeight:400, lineHeight:1.06, letterSpacing:'-0.02em', color:'#0F172A', margin:'0 0 18px', maxWidth:'960px' }}>
+        <h1 style={{ fontFamily:"'Instrument Serif','DM Serif Display',Georgia,serif", fontSize:'clamp(2.1rem,6.2vw,5.2rem)', fontWeight:400, lineHeight:1.06, letterSpacing:'-0.02em', color:'#0F172A', margin:'0 0 18px', maxWidth:'960px', width:'100%' }}>
           The Evidence Graph for<br />
           <em style={{ fontStyle:'italic' }}>industrial maintenance.</em>
         </h1>
 
         {/* Subheadline */}
-        <p style={{ fontSize:'clamp(1.05rem,1.8vw,1.25rem)', color:'#4B5563', lineHeight:1.7, maxWidth:'780px', margin:'0 auto 28px' }}>
+        <p style={{ fontSize:'clamp(1.02rem,1.8vw,1.25rem)', color:'#4B5563', lineHeight:1.7, maxWidth:'780px', margin:'0 auto 28px', width:'100%' }}>
           Transform fragmented shop-floor voice and historical repair logs into verified, 4-way operational decisions.
           Map multilingual fault reports against historical data to compare Inspect, Repair, or Replace outcomes with full traceability.
         </p>
 
         {/* CTAs */}
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'16px', flexWrap:'wrap', marginBottom:'16px' }}>
+        <div className="hero-cta-group" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'16px', flexWrap:'wrap', marginBottom:'16px', width:'100%' }}>
           <button type="button" onClick={onLaunchStudio}
-            style={{ display:'inline-flex', alignItems:'center', gap:'10px', background:'#0F172A', color:'#FFF', padding:'14px 34px', borderRadius:'9999px', fontSize:'1.05rem', fontWeight:600, border:'none', cursor:'pointer', boxShadow:'0 4px 18px rgba(0,0,0,0.18)', transition:'all 0.2s ease' }}
+            className="hero-cta-btn hero-cta-primary"
+            style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', gap:'10px', background:'#0F172A', color:'#FFF', padding:'14px 34px', borderRadius:'9999px', fontSize:'1.05rem', fontWeight:600, border:'none', cursor:'pointer', boxShadow:'0 4px 18px rgba(0,0,0,0.18)', transition:'all 0.2s ease' }}
             onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='#1E293B';(e.currentTarget as HTMLElement).style.transform='translateY(-2px)';}}
             onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='#0F172A';(e.currentTarget as HTMLElement).style.transform='none';}}>
             <span>▷</span><span>Launch Operations Studio</span>
           </button>
           <button type="button" onClick={onExploreTour}
-            style={{ display:'inline-flex', alignItems:'center', gap:'8px', background:'#FFFFFF', color:'#0F172A', padding:'14px 28px', borderRadius:'9999px', fontSize:'1rem', fontWeight:600, border:'1px solid rgba(0,0,0,0.12)', cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,0.06)', transition:'all 0.2s ease' }}
+            className="hero-cta-btn hero-cta-secondary"
+            style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', gap:'8px', background:'#FFFFFF', color:'#0F172A', padding:'14px 28px', borderRadius:'9999px', fontSize:'1rem', fontWeight:600, border:'1px solid rgba(0,0,0,0.12)', cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,0.06)', transition:'all 0.2s ease' }}
             onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.transform='translateY(-1px)';}}
             onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.transform='none';}}>
             <span>Explore Interactive Evidence Graph</span><span>↓</span>
@@ -233,11 +235,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onLaunchStudio, onExpl
 
         {/* Demo Persona Bar */}
         {onDemoPersona && (
-          <div style={{ display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', justifyContent:'center', marginBottom:'32px' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap', justifyContent:'center', marginBottom:'32px', width:'100%' }}>
             <span style={{ fontSize:'12.5px', color:'#6B7280', fontWeight:600 }}>Instant Judge Demo Access:</span>
             {([['SUPERVISOR','Supervisor · Priya'],['TECHNICIAN','Technician · Rajesh'],['WORKER','Worker · Amit']] as ['SUPERVISOR'|'TECHNICIAN'|'WORKER', string][]).map(([role, label]) => (
               <button key={role} type="button" onClick={()=>onDemoPersona(role)}
-                style={{ fontSize:'12px', fontWeight:600, color:'#1D4ED8', background:'rgba(37,99,235,0.08)', border:'1px solid rgba(37,99,235,0.22)', borderRadius:'9999px', padding:'5px 15px', cursor:'pointer', transition:'all 0.2s' }}
+                style={{ fontSize:'12px', fontWeight:600, color:'#1D4ED8', background:'rgba(37,99,235,0.08)', border:'1px solid rgba(37,99,235,0.22)', borderRadius:'9999px', padding:'5px 15px', cursor:'pointer', transition:'all 0.2s', whiteSpace:'nowrap' }}
                 onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(37,99,235,0.16)';}}
                 onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='rgba(37,99,235,0.08)';}}>
                 {label} →
@@ -248,37 +250,38 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onLaunchStudio, onExpl
         {!onDemoPersona && <div style={{ marginBottom:'32px' }} />}
 
         {/* ── Hero Interactive Pipeline Card ── */}
-        <div style={{ width:'100%', background:'#0D1117', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'20px', boxShadow:'0 32px 80px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.15)', overflow:'hidden' }}>
+        <div style={{ width:'100%', background:'#0D1117', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'20px', boxShadow:'0 32px 80px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.15)', overflow:'hidden', boxSizing:'border-box' }}>
           {/* Window chrome */}
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 18px', borderBottom:'1px solid rgba(255,255,255,0.07)', background:'rgba(255,255,255,0.03)' }}>
-            <div style={{ display:'flex', gap:'7px' }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 18px', borderBottom:'1px solid rgba(255,255,255,0.07)', background:'rgba(255,255,255,0.03)', gap:'10px' }}>
+            <div style={{ display:'flex', gap:'7px', flexShrink:0 }}>
               {['#FF5F56','#FFBD2E','#27C93F'].map(c => <div key={c} style={{ width:'11px', height:'11px', borderRadius:'50%', background:c }} />)}
             </div>
-            <span style={{ fontFamily:'monospace', fontSize:'12px', color:'rgba(255,255,255,0.5)', letterSpacing:'0.04em', fontWeight:500 }}>kirova-evidence-pipeline // MCH-005 · From Voice to Verified Action</span>
-            <div style={{ display:'flex', gap:'8px' }}>
+            <span style={{ fontFamily:'monospace', fontSize:'12px', color:'rgba(255,255,255,0.5)', letterSpacing:'0.04em', fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'calc(100vw - 120px)' }}>kirova-evidence-pipeline // MCH-005 · From Voice to Verified Action</span>
+            <div style={{ display:'flex', gap:'8px', flexShrink:0 }}>
               <span style={{ fontFamily:'monospace', fontSize:'11px', color:'rgba(255,255,255,0.3)' }}>⤢</span>
               <span style={{ fontFamily:'monospace', fontSize:'11px', color:'rgba(255,255,255,0.3)' }}>✕</span>
             </div>
           </div>
 
-          {/* Stage tab headers */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', borderBottom:'1px solid rgba(255,255,255,0.07)' }}>
+          {/* Stage tab headers — horizontally scrollable without cutoffs on mobile */}
+          <div className="pipeline-tabs-header" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', borderBottom:'1px solid rgba(255,255,255,0.07)' }}>
             {PIPELINE_STAGES.map((s, i) => (
               <button key={s.id} type="button" onClick={()=>setActiveStage(i)}
-                style={{ padding:'12px 10px', border:'none', borderBottom: i === activeStage ? `2.5px solid ${s.badgeColor}` : '2.5px solid transparent', background: i === activeStage ? 'rgba(255,255,255,0.05)' : 'transparent', cursor:'pointer', textAlign:'left', transition:'all 0.2s' }}>
-                <div style={{ fontFamily:'monospace', fontSize:'11px', color: i === activeStage ? s.badgeColor : 'rgba(255,255,255,0.4)', fontWeight:700, letterSpacing:'0.06em', marginBottom:'4px' }}>{s.num} / {s.label.split(' ').slice(0,2).join(' ')}</div>
-                <span style={{ fontSize:'10px', fontFamily:'monospace', background: i === activeStage ? s.badgeBg : 'transparent', color: i === activeStage ? s.badgeColor : 'rgba(255,255,255,0.3)', border:`1px solid ${i === activeStage ? s.badgeColor + '60' : 'transparent'}`, borderRadius:'4px', padding:'2px 7px', letterSpacing:'0.05em', textTransform:'uppercase', fontWeight:600 }}>{s.badge}</span>
+                className="pipeline-tab-btn"
+                style={{ padding:'12px 10px', border:'none', borderBottom: i === activeStage ? `2.5px solid ${s.badgeColor}` : '2.5px solid transparent', background: i === activeStage ? 'rgba(255,255,255,0.05)' : 'transparent', cursor:'pointer', textAlign:'left', transition:'all 0.2s', minWidth:'max-content' }}>
+                <div style={{ fontFamily:'monospace', fontSize:'11px', color: i === activeStage ? s.badgeColor : 'rgba(255,255,255,0.4)', fontWeight:700, letterSpacing:'0.06em', marginBottom:'4px', whiteSpace:'nowrap' }}>{s.num} / {s.label.split(' ').slice(0,2).join(' ')}</div>
+                <span style={{ fontSize:'10px', fontFamily:'monospace', background: i === activeStage ? s.badgeBg : 'transparent', color: i === activeStage ? s.badgeColor : 'rgba(255,255,255,0.3)', border:`1px solid ${i === activeStage ? s.badgeColor + '60' : 'transparent'}`, borderRadius:'4px', padding:'2px 7px', letterSpacing:'0.05em', textTransform:'uppercase', fontWeight:600, whiteSpace:'nowrap' }}>{s.badge}</span>
               </button>
             ))}
           </div>
 
           {/* Stage content */}
-          <div style={{ padding:'20px 24px', minHeight:'190px' }}>
+          <div style={{ padding:'20px 24px', minHeight:'190px', boxSizing:'border-box' }} className="pipeline-content-area">
             <div style={{ display:'flex', alignItems:'flex-start', gap:'16px' }}>
               <div style={{ fontFamily:'monospace', fontSize:'32px', fontWeight:700, color:'rgba(255,255,255,0.1)', lineHeight:1, flexShrink:0, paddingTop:'6px' }}>
                 {PIPELINE_STAGES[activeStage].num}
               </div>
-              <div style={{ flex:1 }}>
+              <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ fontSize:'14px', fontWeight:700, color:'#FFFFFF', marginBottom:'4px' }}>{PIPELINE_STAGES[activeStage].label}</div>
                 <PipelineStageContent stageId={PIPELINE_STAGES[activeStage].id} />
               </div>
@@ -295,14 +298,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onLaunchStudio, onExpl
         </div>
 
         {/* ── Metrics Bar ── */}
-        <div style={{ width:'100%', display:'grid', gridTemplateColumns:'repeat(2,1fr)', marginTop:'1px', border:'1px solid rgba(0,0,0,0.09)', borderRadius:'0 0 16px 16px', background:'rgba(255,255,255,0.75)', backdropFilter:'blur(10px)' } as React.CSSProperties} className="metrics-bar-grid">
+        <div className="metrics-bar-grid" style={{ width:'100%', display:'grid', marginTop:'1px', border:'1px solid rgba(0,0,0,0.09)', borderRadius:'0 0 16px 16px', background:'rgba(255,255,255,0.75)', backdropFilter:'blur(10px)', boxSizing:'border-box' } as React.CSSProperties}>
           {[
             { val:'4', unit:'-Way', title:'Decision Space', sub:'Inspect · Repair · Replace Part · Replace Asset' },
             { val:'5', unit:' Layers', title:'Epistemic Separation', sub:'Fact · Evidence · Inference · Option · Outcome' },
             { val:'5', unit:' Languages', title:'Shop-Floor Voice Intake', sub:'Hindi · Hinglish · Tamil · Telugu · English' },
             { val:'100', unit:'%', title:'Source Traceability', sub:'Every claim linked to an underlying record ID' },
           ].map((m, i) => (
-            <div key={i} style={{ padding:'24px 28px', borderRight: i % 2 === 0 ? '1px solid rgba(0,0,0,0.07)' : 'none', borderTop: i >= 2 ? '1px solid rgba(0,0,0,0.07)' : 'none' }}>
+            <div key={i} className={`metric-cell metric-cell-${i}`} style={{ padding:'24px 28px', boxSizing:'border-box' }}>
               <div style={{ display:'flex', alignItems:'baseline', gap:'2px', marginBottom:'4px' }}>
                 <span style={{ fontFamily:"'DM Serif Display',Georgia,serif", fontSize:'2.8rem', fontWeight:400, color:'#0F172A', lineHeight:1 }}>{m.val}</span>
                 <span style={{ fontSize:'1.2rem', color:'#4B5563', fontWeight:600, marginLeft:'2px' }}>{m.unit}</span>
@@ -317,7 +320,80 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onLaunchStudio, onExpl
       <style>{`
         @keyframes kpulse{0%,100%{opacity:.85;transform:scale(1)}50%{opacity:1;transform:scale(1.28)}}
         @keyframes wave-anim{0%{height:8px}100%{height:100%}}
-        @media(max-width:760px){.metrics-bar-grid{grid-template-columns:1fr!important}}
+
+        /* Metrics Bar responsive grid */
+        .metrics-bar-grid {
+          grid-template-columns: repeat(4, 1fr) !important;
+        }
+        .metric-cell {
+          border-right: 1px solid rgba(0,0,0,0.07);
+        }
+        .metric-cell-3 {
+          border-right: none !important;
+        }
+
+        @media (max-width: 1024px) {
+          .metrics-bar-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+          .metric-cell {
+            border-right: none !important;
+            border-top: none !important;
+          }
+          .metric-cell-0, .metric-cell-2 {
+            border-right: 1px solid rgba(0,0,0,0.07) !important;
+          }
+          .metric-cell-2, .metric-cell-3 {
+            border-top: 1px solid rgba(0,0,0,0.07) !important;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .hero-section {
+            padding-left: 16px !important;
+            padding-right: 16px !important;
+          }
+          .pipeline-tabs-header {
+            display: flex !important;
+            overflow-x: auto !important;
+            flex-wrap: nowrap !important;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding: 0 4px;
+          }
+          .pipeline-tabs-header::-webkit-scrollbar {
+            display: none;
+          }
+          .pipeline-tab-btn {
+            flex: 0 0 auto !important;
+            padding: 10px 14px !important;
+          }
+          .pipeline-content-area {
+            padding: 16px 14px !important;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .hero-cta-group {
+            flex-direction: column !important;
+            gap: 12px !important;
+          }
+          .hero-cta-btn {
+            width: 100% !important;
+            justify-content: center !important;
+          }
+          .metrics-bar-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .metric-cell {
+            border-right: none !important;
+            border-top: 1px solid rgba(0,0,0,0.07) !important;
+            padding: 18px 20px !important;
+          }
+          .metric-cell-0 {
+            border-top: none !important;
+          }
+        }
       `}</style>
     </section>
   );

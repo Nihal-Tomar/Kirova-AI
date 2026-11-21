@@ -111,16 +111,17 @@ export const RoleLaunchpadSection: React.FC<RoleLaunchpadProps> = ({ onDemoPerso
       </p>
     </div>
 
-    {/* 3-column card grid */}
-    <div style={{ maxWidth:'1180px', margin:'0 auto', display:'grid', gridTemplateColumns:'repeat(3,1fr)', borderBottom:'1px solid rgba(0,0,0,0.07)' }} className="role-cards-grid">
+    {/* 3-column card grid — stacks on < 1024px with gap-6 */}
+    <div style={{ maxWidth:'1180px', margin:'0 auto', display:'grid', gridTemplateColumns:'repeat(3,1fr)', borderBottom:'1px solid rgba(0,0,0,0.07)', boxSizing:'border-box' }} className="role-cards-grid">
       {ROLES.map((role, i) => (
-        <div key={role.num} style={{
+        <div key={role.num} className="role-card-item" style={{
           padding:'42px 32px',
           borderRight: i < 2 ? '1px solid rgba(0,0,0,0.07)' : 'none',
           background: role.isHighlighted ? '#FFFFFF' : 'transparent',
           boxShadow: role.isHighlighted ? '0 4px 24px rgba(0,0,0,0.06)' : 'none',
           position:'relative',
           display:'flex', flexDirection:'column', gap:'22px',
+          boxSizing:'border-box',
         }}>
           {role.isHighlighted && (
             <div style={{ position:'absolute', top:'-1px', left:'32px', right:'32px', height:'3px', background:'linear-gradient(90deg,#2563EB,#7C3AED)', borderRadius:'0 0 3px 3px' }} />
@@ -147,7 +148,7 @@ export const RoleLaunchpadSection: React.FC<RoleLaunchpadProps> = ({ onDemoPerso
           </div>
 
           {/* Micro preview */}
-          <div style={{ background:'rgba(0,0,0,0.025)', border:'1px solid rgba(0,0,0,0.08)', borderRadius:'12px', padding:'16px' }}>
+          <div style={{ background:'rgba(0,0,0,0.025)', border:'1px solid rgba(0,0,0,0.08)', borderRadius:'12px', padding:'16px', boxSizing:'border-box', overflow:'hidden' }}>
             {role.preview}
           </div>
 
@@ -163,6 +164,19 @@ export const RoleLaunchpadSection: React.FC<RoleLaunchpadProps> = ({ onDemoPerso
       ))}
     </div>
 
-    <style>{`@media(max-width:760px){.role-cards-grid{grid-template-columns:1fr!important}.role-cards-grid>div{border-right:none!important;border-bottom:1px solid rgba(0,0,0,0.07)!important}}`}</style>
+    <style>{`
+      @media(max-width:1024px){
+        .role-cards-grid{
+          grid-template-columns:1fr !important;
+          gap: 24px !important;
+          padding-bottom: 24px !important;
+        }
+        .role-card-item {
+          border-right:none !important;
+          border-bottom: 1px solid rgba(0,0,0,0.07) !important;
+          padding: 28px 20px !important;
+        }
+      }
+    `}</style>
   </section>
 );

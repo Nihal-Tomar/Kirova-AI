@@ -8,12 +8,12 @@ const PROBLEM_STEPS = [
 ];
 
 export const ProblemPivotSection: React.FC = () => (
-  <section id="problem" style={{ background:'#FFFFFF', borderTop:'1px solid rgba(0,0,0,0.07)', scrollMarginTop:'112px' }}>
-    <div style={{ maxWidth:'1180px', margin:'0 auto' }}>
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr' }} className="problem-pivot-grid">
+  <section id="problem" style={{ background:'#FFFFFF', borderTop:'1px solid rgba(0,0,0,0.07)', scrollMarginTop:'112px', width:'100%', boxSizing:'border-box' }}>
+    <div style={{ maxWidth:'1180px', margin:'0 auto', boxSizing:'border-box' }}>
+      <div style={{ display:'grid' }} className="problem-pivot-grid">
 
         {/* Left: The Fragmented Reality */}
-        <div style={{ padding:'72px 52px 72px 32px', borderRight:'1px solid rgba(0,0,0,0.07)' }}>
+        <div className="problem-left-pane" style={{ padding:'72px 52px 72px 32px', borderRight:'1px solid rgba(0,0,0,0.07)', boxSizing:'border-box' }}>
           <div style={{ fontFamily:'monospace', fontSize:'11.5px', color:'rgba(0,0,0,0.4)', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:'16px', fontWeight:600 }}>00 / The Fragmented Reality</div>
           <h2 style={{ fontFamily:"'Instrument Serif','DM Serif Display',Georgia,serif", fontSize:'clamp(1.9rem,3.2vw,2.75rem)', fontWeight:400, color:'#0F172A', margin:'0 0 16px', lineHeight:1.15 }}>
             Why traditional maintenance<br />repeats failed fixes.
@@ -38,14 +38,14 @@ export const ProblemPivotSection: React.FC = () => (
             ))}
           </div>
 
-          <div style={{ marginTop:'32px', background:'rgba(239,68,68,0.05)', border:'1px solid rgba(239,68,68,0.2)', borderRadius:'12px', padding:'16px 18px' }}>
+          <div style={{ marginTop:'32px', background:'rgba(239,68,68,0.05)', border:'1px solid rgba(239,68,68,0.2)', borderRadius:'12px', padding:'16px 18px', boxSizing:'border-box' }}>
             <div style={{ fontFamily:'monospace', fontSize:'11px', color:'#DC2626', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:'5px', fontWeight:700 }}>The Real-World Result</div>
             <div style={{ fontSize:'13.5px', color:'#374151', lineHeight:1.6 }}>Chronic recurring breakdowns, bloated inventory budgets, and zero defensible proof of whether past actions were effective.</div>
           </div>
         </div>
 
         {/* Right: The Kirova Evidence Pivot */}
-        <div style={{ padding:'72px 32px 72px 52px' }}>
+        <div className="problem-right-pane" style={{ padding:'72px 32px 72px 52px', boxSizing:'border-box' }}>
           <div style={{ fontFamily:'monospace', fontSize:'11.5px', color:'rgba(0,0,0,0.4)', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:'16px', fontWeight:600 }}>01 / The Kirova Evidence Pivot</div>
           <h2 style={{ fontFamily:"'Instrument Serif','DM Serif Display',Georgia,serif", fontSize:'clamp(1.9rem,3.2vw,2.75rem)', fontWeight:400, color:'#0F172A', margin:'0 0 16px', lineHeight:1.15 }}>
             An intelligence layer<br />alongside your existing CMMS.
@@ -69,7 +69,7 @@ export const ProblemPivotSection: React.FC = () => (
             </div>
           ))}
 
-          <div style={{ marginTop:'28px', background:'rgba(16,185,129,0.06)', border:'1px solid rgba(16,185,129,0.22)', borderRadius:'12px', padding:'16px 18px' }}>
+          <div style={{ marginTop:'28px', background:'rgba(16,185,129,0.06)', border:'1px solid rgba(16,185,129,0.22)', borderRadius:'12px', padding:'16px 18px', boxSizing:'border-box' }}>
             <div style={{ fontFamily:'monospace', fontSize:'11px', color:'#059669', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:'5px', fontWeight:700 }}>Zero Rip-And-Replace Architecture</div>
             <div style={{ fontSize:'13.5px', color:'#374151', lineHeight:1.6 }}>Kirova AI does not replace your CMMS. It is the evidence and decision intelligence layer that turns historical records into defensible maintenance choices.</div>
           </div>
@@ -77,6 +77,23 @@ export const ProblemPivotSection: React.FC = () => (
       </div>
     </div>
 
-    <style>{`@media(max-width:760px){.problem-pivot-grid{grid-template-columns:1fr!important}.problem-pivot-grid>div{padding:44px 24px!important;border-right:none!important;border-bottom:1px solid rgba(0,0,0,0.07)!important}}`}</style>
+    <style>{`
+      .problem-pivot-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      @media(max-width:1024px){
+        .problem-pivot-grid{
+          grid-template-columns:1fr !important;
+        }
+        .problem-left-pane {
+          padding: 48px 20px !important;
+          border-right: none !important;
+          border-bottom: 1px solid rgba(0,0,0,0.07) !important;
+        }
+        .problem-right-pane {
+          padding: 48px 20px !important;
+        }
+      }
+    `}</style>
   </section>
 );

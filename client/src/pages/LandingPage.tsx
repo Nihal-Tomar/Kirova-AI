@@ -34,7 +34,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   };
 
   return (
-    <div style={{ margin:0, padding:0, background:'#F8F7F4', overflowX:'hidden' }}>
+    <div style={{ margin:0, padding:0, background:'#F8F7F4', overflowX:'hidden', width:'100%', maxWidth:'100vw', boxSizing:'border-box' }}>
       {/* Sticky Navbar — fixed z-50, never overlaps sections */}
       <Navbar
         onLaunchStudio={onLaunchStudio}
@@ -45,7 +45,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       />
 
       {/* Architectural hairline container */}
-      <div style={{ maxWidth:'1280px', margin:'0 auto', borderLeft:'1px solid rgba(0,0,0,0.05)', borderRight:'1px solid rgba(0,0,0,0.05)', position:'relative' }}>
+      <div style={{ maxWidth:'1280px', width:'100%', margin:'0 auto', borderLeft:'1px solid rgba(0,0,0,0.05)', borderRight:'1px solid rgba(0,0,0,0.05)', position:'relative', boxSizing:'border-box', overflowX:'hidden' }}>
 
         {/* Section A — Hero */}
         <HeroSection

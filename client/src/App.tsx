@@ -787,7 +787,7 @@ function FourWayDecisionMatrixView({ onApprove }: { onApprove?: () => void }) {
         </div>
 
         {/* 2x2 Matrix Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+        <div className="ks-matrix-2x2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
           {/* Card 1: Inspect */}
           <div
             onClick={() => setSelected(1)}
@@ -1487,9 +1487,9 @@ function Header({
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div className="page-header-actions" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         {/* Global Search matching Image 2 */}
-        <div style={{
+        <div className="header-search-wrap" style={{
           display: 'flex',
           alignItems: 'center',
           gap: 8,
@@ -1507,7 +1507,7 @@ function Header({
         </div>
 
         {/* Live Audio Stream Pill matching Image 2 */}
-        <div style={{
+        <div className="header-voice-pill" style={{
           display: 'inline-flex',
           alignItems: 'center',
           gap: 6,
@@ -1659,7 +1659,7 @@ function SupervisorOverview() {
       </div>
 
       {/* Main Split View: Interactive Evidence Graph + 4-Way Decision Matrix (Matches Image 2) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 20, marginBottom: 28, alignItems: 'stretch' }}>
+      <div className="ks-overview-split" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 20, marginBottom: 28, alignItems: 'stretch' }}>
         <InteractiveEvidenceGraphView />
         <FourWayDecisionMatrixView onApprove={handleQuickApprove} />
       </div>
