@@ -478,8 +478,15 @@ function VoiceRecorder({
       )}
 
       {errorMessage && (
-        <div style={{ color: '#FCA5A5', fontSize: '11px', marginBottom: '8px', padding: '0 8px' }}>
-          {errorMessage}
+        <div style={{ color: '#FCA5A5', fontSize: '11px', marginBottom: '8px', padding: '0 8px', textAlign: 'center' }}>
+          <div>{errorMessage}</div>
+          <button
+            type="button"
+            onClick={reset}
+            style={{ marginTop: '4px', background: 'none', border: '1px solid rgba(255,255,255,0.2)', color: '#FFFFFF', borderRadius: '4px', padding: '2px 8px', fontSize: '10px', cursor: 'pointer' }}
+          >
+            Retry Recording
+          </button>
         </div>
       )}
 

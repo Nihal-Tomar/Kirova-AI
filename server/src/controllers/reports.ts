@@ -97,9 +97,12 @@ export async function transcribeReport(req: Request, res: Response): Promise<voi
       transcript = sttRes.transcript;
       isMock = sttRes.isMock;
     } catch (err: any) {
-      res.status(502).json({
+      const statusCode = err.statusCode || 502;
+      res.status(statusCode).json({
         error: "TRANSCRIPTION_FAILED",
-        message: `Audio transcription failed: ${err.message}`
+        statusCode,
+        message: err.userMessage || err.message,
+        errorCode: err.errorCode
       });
       return;
     }

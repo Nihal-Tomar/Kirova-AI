@@ -295,9 +295,24 @@ export function VoiceRecorderModal({
 
         {/* Error Alert */}
         {errorMessage && (
-          <div style={{ margin: '0 20px 12px 20px', padding: '10px 12px', background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '8px', display: 'flex', alignItems: 'flex-start', gap: '8px', color: '#991B1B', fontSize: '12px' }}>
-            <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
-            <div>{errorMessage}</div>
+          <div style={{ margin: '0 20px 12px 20px', padding: '12px 14px', background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '10px', color: '#991B1B', fontSize: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+              <AlertCircle size={17} style={{ flexShrink: 0, marginTop: '2px' }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 700, marginBottom: '2px' }}>Speech Recognition Notice</div>
+                <div>{errorMessage}</div>
+              </div>
+            </div>
+            <div style={{ marginTop: '10px', display: 'flex', gap: '8px', paddingLeft: '25px' }}>
+              <button
+                type="button"
+                onClick={handleDiscard}
+                className="btn btn-secondary btn-sm"
+                style={{ fontSize: '11px', padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              >
+                <RotateCcw size={12} /> Retry Recording
+              </button>
+            </div>
           </div>
         )}
 

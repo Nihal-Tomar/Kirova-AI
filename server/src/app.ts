@@ -111,29 +111,44 @@ export function createApp(): express.Application {
   app.get("/api/reports", requireAuth, reportsCtrl.getReports);
 
   // --- Reusable Generic Speech-to-Text Transcription Route ---
-  app.post("/api/stt/transcribe", upload.single("audio"), requireAuth, async (req: Request, res: Response) => {
-    try {
-      if (!req.file) {
-        res.status(400).json({ error: "MISSING_AUDIO", message: "Audio file is required in 'audio' field." });
-        return;
-      }
-      const language = req.body.language || req.body.language_code || "Hinglish";
-      const result = await transcribeAudio(req.file.path, language);
+  app.post(
+    "/api/stt/transcribe",
+    upload.fields([{ name: "audio", maxCount: 1 }, { name: "file", maxCount: 1 }]),
+    requireAuth,
+    async (req: Request, res: Response) => {
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+      const uploadedFile = files?.audio?.[0] || files?.file?.[0] || req.file;
 
-      // Clean up temporary upload file asynchronously
-      fs.unlink(req.file.path, (err) => {
-        if (err) console.warn("Could not delete temporary audio file:", err.message);
-      });
+      try {
+        if (!uploadedFile) {
+          res.status(400).json({ error: "MISSING_AUDIO", message: "Audio file is required in 'audio' or 'file' field." });
+          return;
+        }
+        const language = req.body.language || req.body.language_code || "Hinglish";
+        const result = await transcribeAudio(uploadedFile.path, language);
 
-      res.json(result);
-    } catch (err: any) {
-      console.error("STT route error:", err);
-      if (req.file?.path && fs.existsSync(req.file.path)) {
-        try { fs.unlinkSync(req.file.path); } catch {}
+        // Clean up temporary upload file asynchronously
+        fs.unlink(uploadedFile.path, (err) => {
+          if (err) console.warn("Could not delete temporary audio file:", err.message);
+        });
+
+        res.json(result);
+      } catch (err: any) {
+        console.error("STT route error:", err);
+        if (uploadedFile?.path && fs.existsSync(uploadedFile.path)) {
+          try { fs.unlinkSync(uploadedFile.path); } catch {}
+        }
+        const statusCode = err.statusCode || (err.name === "SarvamSTTError" ? err.statusCode : 502);
+        res.status(statusCode || 502).json({
+          error: "TRANSCRIPTION_FAILED",
+          statusCode: statusCode || 502,
+          message: err.userMessage || err.message,
+          errorCode: err.errorCode,
+          requestId: err.requestId
+        });
       }
-      res.status(502).json({ error: "TRANSCRIPTION_FAILED", message: err.message });
     }
-  });
+  );
 
   // --- Work Order Routes (PRD Section 10) ---
   app.post("/api/work-orders", requireAuth, requireRole(["SUPERVISOR"]), workOrdersCtrl.createWorkOrder);
