@@ -86,7 +86,7 @@ export async function submitTriageDecision(req: Request, res: Response): Promise
   const incRes = await db.query(
     `SELECT i.*, m.name as machine_name, m.asset_tag 
      FROM incidents i
-     LEFT JOIN machines m ON i.machine_id = m.id
+     LEFT JOIN machines m ON i.machine_id = m.id AND (m.is_active IS NULL OR m.is_active = TRUE)
      WHERE i.id = $1 AND i.organization_id = $2`,
     [id, user.organizationId]
   );
@@ -109,10 +109,10 @@ export async function submitTriageDecision(req: Request, res: Response): Promise
       return;
     }
 
-    if (!inc.machine_id) {
+    if (!inc.machine_id || !inc.machine_name) {
       res.status(400).json({
         error: "UNRESOLVED_MACHINE",
-        message: "Cannot assign technician to an incident with missing or ambiguous machine. Clarification required first."
+        message: "Cannot assign technician to an incident with missing, unavailable, or ambiguous machine record. Clarification or machine verification required first."
       });
       return;
     }

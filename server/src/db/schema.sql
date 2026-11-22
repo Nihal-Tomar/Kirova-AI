@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS machines (
     id TEXT PRIMARY KEY,
     site_id TEXT NOT NULL REFERENCES sites(id) ON DELETE CASCADE,
-    asset_tag TEXT UNIQUE NOT NULL,
+    asset_tag TEXT UNIQUE,
     name TEXT NOT NULL,
     type TEXT NOT NULL CHECK (type IN ('CONVEYOR', 'CNC_MILLING', 'LATHE', 'HYDRAULIC_PRESS', 'COMPRESSOR', 'PUMP')),
     model_number TEXT,
@@ -41,6 +41,9 @@ CREATE TABLE IF NOT EXISTS machines (
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Ensure asset_tag column allows NULL for machines without registered physical tags (Case 2)
+ALTER TABLE machines ALTER COLUMN asset_tag DROP NOT NULL;
 
 -- 5. Components
 CREATE TABLE IF NOT EXISTS components (

@@ -160,7 +160,55 @@ export function SupervisorTriageWorkspace({
     );
   }
 
-  const isMissingMachine = !incident.machine_id;
+  const getMachineResolutionCase = (): { caseNumber: 1 | 2 | 3 | 4 | 5; title: string; subtitle: string } => {
+    if (incident.machine_id) {
+      if (incident.machine_name) {
+        if (incident.asset_tag && incident.asset_tag.trim().length > 0) {
+          return {
+            caseNumber: 1,
+            title: 'Verified Machine & Asset Tag',
+            subtitle: 'Machine and asset tag verified in plant registry.'
+          };
+        }
+        return {
+          caseNumber: 2,
+          title: 'Machine Identified (No Asset Tag)',
+          subtitle: 'Machine record identified in registry. Physical asset tag not registered.'
+        };
+      }
+      return {
+        caseNumber: 4,
+        title: 'Machine Record Unavailable',
+        subtitle: `Referenced machine ID (${incident.machine_id}) is not present in registry. Supervisor verification required.`
+      };
+    }
+
+    // No machine_id
+    const question = (incident.clarification_question || '').toLowerCase();
+    const explanation = (assessment?.summaryExplanation || '').toLowerCase();
+    const isAmbiguous =
+      question.includes('multiple') ||
+      question.includes('did you mean') ||
+      explanation.includes('ambiguous') ||
+      (assessment?.missingInformation && assessment.missingInformation.some((m: string) => m.toLowerCase().includes('ambiguous') || m.toLowerCase().includes('vs')));
+
+    if (isAmbiguous) {
+      return {
+        caseNumber: 5,
+        title: 'Ambiguous Machine Reference',
+        subtitle: incident.clarification_question || 'Multiple machines match the reported voice description. Clarification required.'
+      };
+    }
+
+    return {
+      caseNumber: 3,
+      title: 'Machine Not Selected',
+      subtitle: 'No machine was selected by reporter. Machine identification recommended before dispatch.'
+    };
+  };
+
+  const machineResolution = incident ? getMachineResolutionCase() : { caseNumber: 3, title: '', subtitle: '' };
+  const canAssignTechnician = machineResolution.caseNumber === 1 || machineResolution.caseNumber === 2;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -209,14 +257,38 @@ export function SupervisorTriageWorkspace({
           <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>SECTION A — Incident Telemetry & Overview</h3>
         </div>
 
-        {/* Missing Machine Callout */}
-        {isMissingMachine && (
+        {/* Machine Callouts for Cases 3, 4, 5 */}
+        {machineResolution.caseNumber === 3 && (
           <div style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: '8px', padding: '12px 16px', marginBottom: '16px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
             <AlertTriangle size={18} color="#D97706" style={{ flexShrink: 0, marginTop: '2px' }} />
             <div>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: '#B45309' }}>Machine Identification Missing or Ambiguous</div>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: '#B45309' }}>Machine Not Selected</div>
               <div style={{ fontSize: '12px', color: '#78350F', marginTop: '2px' }}>
-                The reporter did not scan an asset barcode or provide an explicit asset tag (e.g., MCH-004 vs MCH-014). To avoid misdirected dispatch, asset verification is recommended before assigning a technician.
+                The reporter submitted this fault without selecting a machine. Machine identification is recommended before assigning a technician to avoid misdirected dispatch.
+              </div>
+            </div>
+          </div>
+        )}
+
+        {machineResolution.caseNumber === 4 && (
+          <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '8px', padding: '12px 16px', marginBottom: '16px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+            <AlertCircle size={18} color="#DC2626" style={{ flexShrink: 0, marginTop: '2px' }} />
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: '#991B1B' }}>Machine Record Unavailable</div>
+              <div style={{ fontSize: '12px', color: '#7F1D1D', marginTop: '2px' }}>
+                The referenced machine ID <code style={{ background: '#FEE2E2', padding: '1px 4px', borderRadius: '4px' }}>{incident.machine_id}</code> is unavailable or not found in the factory registry. Supervisor verification is required.
+              </div>
+            </div>
+          </div>
+        )}
+
+        {machineResolution.caseNumber === 5 && (
+          <div style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: '8px', padding: '12px 16px', marginBottom: '16px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+            <AlertTriangle size={18} color="#D97706" style={{ flexShrink: 0, marginTop: '2px' }} />
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: '#B45309' }}>Multiple Possible Machine Matches Detected</div>
+              <div style={{ fontSize: '12px', color: '#78350F', marginTop: '2px' }}>
+                {incident.clarification_question || "Multiple equipment assets match the reported symptoms or spoken name. Manual machine verification is requested to prevent misdirected maintenance dispatch."}
               </div>
             </div>
           </div>
@@ -225,13 +297,47 @@ export function SupervisorTriageWorkspace({
         <div className="info-grid" style={{ marginBottom: '16px' }}>
           <div className="info-item">
             <span className="info-label">Target Asset</span>
-            <span className="info-value" style={{ fontWeight: 600, color: isMissingMachine ? '#DC2626' : '#0F172A' }}>
-              {incident.machine_name ? `${incident.machine_name} (${incident.asset_tag})` : '⚠️ Missing Asset Tag'}
+            <span className="info-value" style={{ fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              {machineResolution.caseNumber === 1 && (
+                <>
+                  <span style={{ color: '#0F172A' }}>{incident.machine_name}</span>
+                  <span className="badge badge-info" style={{ fontSize: '11px', padding: '2px 8px' }}>{incident.asset_tag}</span>
+                  <span style={{ fontSize: '11px', color: '#64748B' }}>({incident.machine_id})</span>
+                </>
+              )}
+              {machineResolution.caseNumber === 2 && (
+                <>
+                  <span style={{ color: '#0F172A' }}>{incident.machine_name}</span>
+                  <span style={{ fontSize: '11px', color: '#64748B' }}>({incident.machine_id})</span>
+                  <span className="badge" style={{ fontSize: '11px', padding: '2px 8px', background: '#F1F5F9', color: '#475569', border: '1px solid #CBD5E1' }}>
+                    Asset tag not registered
+                  </span>
+                </>
+              )}
+              {machineResolution.caseNumber === 3 && (
+                <span style={{ color: '#D97706', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <AlertTriangle size={14} /> Machine not selected
+                </span>
+              )}
+              {machineResolution.caseNumber === 4 && (
+                <span style={{ color: '#DC2626', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <AlertCircle size={14} /> Machine record unavailable ({incident.machine_id})
+                </span>
+              )}
+              {machineResolution.caseNumber === 5 && (
+                <span style={{ color: '#D97706', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <AlertTriangle size={14} /> Ambiguous machine match
+                </span>
+              )}
             </span>
           </div>
           <div className="info-item">
             <span className="info-label">Shop Floor Location</span>
-            <span className="info-value">{incident.machine_location || 'Unspecified Bay'}</span>
+            <span className="info-value">
+              {machineResolution.caseNumber === 4
+                ? 'Unknown'
+                : (incident.machine_location || (machineResolution.caseNumber === 3 ? 'Unspecified Bay' : 'Shop Floor'))}
+            </span>
           </div>
           <div className="info-item">
             <span className="info-label">Reporter</span>
@@ -418,10 +524,14 @@ export function SupervisorTriageWorkspace({
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
           {/* Action 1: Assign Technician */}
           <div
-            onClick={() => setActiveAction('ASSIGN')}
+            onClick={() => {
+              if (canAssignTechnician) {
+                setActiveAction('ASSIGN');
+              }
+            }}
             style={{
-              cursor: isMissingMachine ? 'not-allowed' : 'pointer',
-              opacity: isMissingMachine ? 0.6 : 1,
+              cursor: canAssignTechnician ? 'pointer' : 'not-allowed',
+              opacity: canAssignTechnician ? 1 : 0.6,
               border: activeAction === 'ASSIGN' ? '2px solid #2563EB' : '1px solid #E2E8F0',
               borderRadius: '10px',
               padding: '16px',
@@ -436,9 +546,11 @@ export function SupervisorTriageWorkspace({
             <div style={{ fontSize: '12px', color: '#64748B', lineHeight: 1.4 }}>
               Match specialized maintenance personnel based on skill graph, verified machine history, and live workload.
             </div>
-            {isMissingMachine && (
+            {!canAssignTechnician && (
               <div style={{ fontSize: '11px', color: '#DC2626', marginTop: '6px', fontWeight: 600 }}>
-                Requires asset clarification first
+                {machineResolution.caseNumber === 4
+                  ? 'Requires machine record verification'
+                  : 'Requires asset clarification first'}
               </div>
             )}
           </div>

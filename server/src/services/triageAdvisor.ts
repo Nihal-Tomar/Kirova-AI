@@ -142,7 +142,7 @@ export class TriageAdvisorService {
     const isMechanicalJam = lower.includes("jam") || lower.includes("stalled") || lower.includes("wobble") || lower.includes("bearing play");
 
     // Missing Machine Identification Check (INC-2026-1799 regression test case)
-    const isMissingMachine = !inc.machine_id || missingFields.includes("machine_id") || missingFields.includes("asset_tag");
+    const isMissingMachine = !inc.machine_id || missingFields.includes("machine_id");
 
     if (isMissingMachine) {
       const missingInfoList = [

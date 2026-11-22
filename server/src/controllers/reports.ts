@@ -13,8 +13,30 @@ import { historyService } from "../services/history";
 export async function createReport(req: Request, res: Response): Promise<void> {
   const user = req.user!;
   const text = req.body.text || "";
+  const rawMachineRef = req.body.machineId || req.body.machine_id || req.body.assetTag || req.body.asset_tag || req.body.targetAsset || null;
   const siteId = req.body.siteId || "site-pune-01";
   const file = req.file;
+
+  let resolvedMachine: any = null;
+  if (rawMachineRef) {
+    const trimmed = String(rawMachineRef).trim();
+    const mchRes = await db.query(
+      `SELECT m.id, m.site_id, m.asset_tag, m.name, m.type, m.model_number, m.serial_number, m.location
+       FROM machines m
+       JOIN sites s ON m.site_id = s.id
+       WHERE (m.id = $1 OR UPPER(m.asset_tag) = UPPER($1)) AND s.organization_id = $2`,
+      [trimmed, user.organizationId]
+    );
+
+    if (mchRes.rows.length === 0) {
+      res.status(400).json({
+        error: "INVALID_MACHINE",
+        message: `Machine reference '${trimmed}' does not exist in the machine registry.`
+      });
+      return;
+    }
+    resolvedMachine = mchRes.rows[0];
+  }
 
   const incidentId = `inc-${Date.now()}-${crypto.randomBytes(3).toString("hex")}`;
   const reportNumber = `INC-2026-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -30,28 +52,97 @@ export async function createReport(req: Request, res: Response): Promise<void> {
   }
 
   const initialSymptom = text.trim() || (file ? "Audio incident report pending transcription" : "Unspecified symptom");
+  const effectiveSiteId = resolvedMachine ? resolvedMachine.site_id : siteId;
+
+  // Run extraction if text description is provided
+  let symptomCategory = "OTHER";
+  let suggestedUrgency = "MEDIUM";
+  let urgencyRationale = "Initial report intake";
+  let recurrenceClaimed = false;
+  const missingFields: string[] = resolvedMachine ? [] : ["machine_id"];
+  let initialStatus = "AWAITING_REVIEW";
+
+  if (text.trim()) {
+    try {
+      const extracted = await extractionService.extract(initialSymptom);
+      symptomCategory = extracted.symptom_category || "OTHER";
+      suggestedUrgency = extracted.suggested_urgency || "MEDIUM";
+      urgencyRationale = extracted.urgency_rationale || "Frontline incident report";
+      recurrenceClaimed = extracted.recurrence_claimed || false;
+    } catch {}
+  } else if (file) {
+    initialStatus = "DRAFT";
+  }
 
   await db.query(
     `INSERT INTO incidents (
-      id, report_number, organization_id, reporter_id, site_id,
+      id, report_number, organization_id, reporter_id, site_id, machine_id,
       input_channel, audio_file_path, audio_sha256, original_transcript,
       corrected_transcript, symptom_text, symptom_category,
-      recurrence_claimed, status, created_at, updated_at
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'OTHER', false, 'DRAFT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+      recurrence_claimed, urgency_suggestion, urgency_rationale, missing_fields,
+      status, created_at, updated_at
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
     [
       incidentId,
       reportNumber,
       user.organizationId,
       user.id,
-      siteId,
+      effectiveSiteId,
+      resolvedMachine?.id || null,
       inputChannel,
       audioPath,
       audioSha256,
       text || null,
       text || null,
-      initialSymptom
+      initialSymptom,
+      symptomCategory,
+      recurrenceClaimed,
+      suggestedUrgency,
+      urgencyRationale,
+      JSON.stringify(missingFields),
+      initialStatus
     ]
   );
+
+  // Grounding evidence provenance
+  if (resolvedMachine) {
+    await db.query(
+      `INSERT INTO incident_evidence (id, incident_id, field_name, label, raw_value, source_reference)
+       VALUES ($1, $2, 'machine_id', 'REPORTED', $3, $4)`,
+      [
+        `ev-${incidentId}-mch`,
+        incidentId,
+        resolvedMachine.asset_tag
+          ? `${resolvedMachine.asset_tag} - ${resolvedMachine.name}`
+          : `${resolvedMachine.id} - ${resolvedMachine.name}`,
+        `Worker machine selection from registry: ${resolvedMachine.name} [${resolvedMachine.id}]`
+      ]
+    );
+  }
+
+  await db.query(
+    `INSERT INTO incident_evidence (id, incident_id, field_name, label, raw_value, source_reference)
+     VALUES ($1, $2, 'symptom_text', 'REPORTED', $3, $4)`,
+    [
+      `ev-${incidentId}-sym`,
+      incidentId,
+      initialSymptom,
+      inputChannel === "VOICE" ? "Worker voice recording" : "Worker text description"
+    ]
+  );
+
+  if (suggestedUrgency) {
+    await db.query(
+      `INSERT INTO incident_evidence (id, incident_id, field_name, label, raw_value, source_reference)
+       VALUES ($1, $2, 'urgency_suggestion', 'SUGGESTED', $3, $4)`,
+      [
+        `ev-${incidentId}-urg`,
+        incidentId,
+        suggestedUrgency,
+        `Extraction analysis: ${urgencyRationale}`
+      ]
+    );
+  }
 
   await logAuditEvent({
     organizationId: user.organizationId,
@@ -59,15 +150,27 @@ export async function createReport(req: Request, res: Response): Promise<void> {
     entityType: "INCIDENT",
     entityId: incidentId,
     action: "CREATE",
-    newState: { id: incidentId, reportNumber, inputChannel, symptomText: initialSymptom }
+    newState: {
+      id: incidentId,
+      reportNumber,
+      machineId: resolvedMachine?.id || null,
+      machineName: resolvedMachine?.name || null,
+      assetTag: resolvedMachine?.asset_tag || null,
+      inputChannel,
+      symptomText: initialSymptom,
+      status: initialStatus
+    }
   });
 
   res.status(201).json({
     id: incidentId,
     reportNumber,
+    machineId: resolvedMachine?.id || null,
+    machineName: resolvedMachine?.name || null,
+    assetTag: resolvedMachine?.asset_tag || null,
     inputChannel,
     symptomText: initialSymptom,
-    status: "DRAFT",
+    status: initialStatus,
     audioSha256
   });
 }
@@ -215,10 +318,34 @@ export async function extractReport(req: Request, res: Response): Promise<void> 
   const extracted = await extractionService.extract(textToProcess);
 
   // 2. Deterministic Machine Resolution & Ambiguity Detection
-  const disambiguation = await disambiguationService.resolveMachine(
+  // If the incident already has a validated machine_id associated (e.g. chosen by worker during report creation),
+  // preserve it and do not overwrite with null or ambiguous text extraction.
+  let disambiguation = await disambiguationService.resolveMachine(
     extracted.machine_reference,
     extracted.symptom_description
   );
+
+  if (inc.machine_id) {
+    const existingMachineRes = await db.query(
+      "SELECT id, asset_tag, name, type, location FROM machines WHERE id = $1",
+      [inc.machine_id]
+    );
+    if (existingMachineRes.rows.length > 0) {
+      const em = existingMachineRes.rows[0];
+      const remainingMissing = disambiguation.missingFields.filter(f => f !== "machine_id" && f !== "asset_tag");
+      disambiguation = {
+        ...disambiguation,
+        machineId: em.id,
+        machineTag: em.asset_tag,
+        machineName: em.name,
+        isAmbiguous: false,
+        candidates: [],
+        missingFields: remainingMissing,
+        status: remainingMissing.length > 0 ? "AWAITING_CLARIFICATION" : "AWAITING_REVIEW",
+        clarificationQuestion: remainingMissing.length > 0 ? disambiguation.clarificationQuestion : null
+      };
+    }
+  }
 
   // 3. Build & Persist Evidence Provenance Records
   const evidenceRecords = evidenceService.buildEvidenceRecords(
@@ -244,7 +371,7 @@ export async function extractReport(req: Request, res: Response): Promise<void> 
          updated_at = CURRENT_TIMESTAMP
      WHERE id = $10`,
     [
-      disambiguation.machineId,
+      disambiguation.machineId || inc.machine_id || null,
       extracted.symptom_description,
       extracted.symptom_category,
       extracted.recurrence_claimed,
@@ -388,7 +515,7 @@ export async function getReportById(req: Request, res: Response): Promise<void> 
     `SELECT i.*, m.asset_tag, m.name as machine_name, m.type as machine_type, m.location as machine_location,
             u.name as reporter_name, u.email as reporter_email, s.name as site_name
      FROM incidents i
-     LEFT JOIN machines m ON i.machine_id = m.id
+     LEFT JOIN machines m ON i.machine_id = m.id AND (m.is_active IS NULL OR m.is_active = TRUE)
      JOIN users u ON i.reporter_id = u.id
      JOIN sites s ON i.site_id = s.id
      WHERE i.id = $1 AND i.organization_id = $2`,

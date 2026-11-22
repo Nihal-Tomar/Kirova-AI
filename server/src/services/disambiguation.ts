@@ -45,9 +45,9 @@ export class DisambiguationService {
 
     const ref = machineRef.trim().toUpperCase();
 
-    // 1. Direct exact Asset Tag lookup (e.g. MCH-001)
+    // 1. Direct exact Asset Tag or Machine ID lookup (e.g. MCH-001 or mch-001)
     const exactTagRes = await db.query(
-      "SELECT id, asset_tag, name, type, location FROM machines WHERE UPPER(asset_tag) = $1",
+      "SELECT id, asset_tag, name, type, location FROM machines WHERE UPPER(asset_tag) = $1 OR UPPER(id) = $1",
       [ref]
     );
 

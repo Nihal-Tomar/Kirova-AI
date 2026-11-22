@@ -29,14 +29,17 @@ export class EvidenceService {
     });
 
     // 2. Machine Reference / ID
-    if (disambiguation.machineId && disambiguation.machineTag) {
+    if (disambiguation.machineId) {
       // Retrieved from database asset registry
+      const displayTag = disambiguation.machineTag ? disambiguation.machineTag : disambiguation.machineId;
       evidence.push({
         id: `ev-${incidentId}-machine`,
         fieldName: "machine_id",
         label: "RETRIEVED",
-        rawValue: `${disambiguation.machineTag} - ${disambiguation.machineName}`,
-        sourceReference: `Asset Registry: machines.asset_tag='${disambiguation.machineTag}'`
+        rawValue: `${displayTag} - ${disambiguation.machineName || "Registered Asset"}`,
+        sourceReference: disambiguation.machineTag
+          ? `Asset Registry: machines.asset_tag='${disambiguation.machineTag}'`
+          : `Asset Registry: machines.id='${disambiguation.machineId}' (Asset tag not registered)`
       });
     } else if (disambiguation.isAmbiguous) {
       evidence.push({

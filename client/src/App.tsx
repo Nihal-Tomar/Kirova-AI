@@ -2351,13 +2351,25 @@ function WorkerVoiceStudio({ onDone }: { onDone: () => void }) {
 
         {/* Machine selection grid */}
         <div style={{ marginBottom: 14 }}>
-          <label className="form-label required">Select Machine on Shop-Floor</label>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <label className="form-label" style={{ margin: 0 }}>Select Machine on Shop-Floor</label>
+            {selectedMachine && (
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                style={{ fontSize: 11, padding: '2px 8px', height: 'auto', color: '#64748B' }}
+                onClick={() => setSelectedMachine('')}
+              >
+                Clear Selection (Machine Unknown)
+              </button>
+            )}
+          </div>
           <div className="ks-machine-grid">
             {machines.slice(0, 6).map(m => (
               <div
                 key={m.id}
                 className={`ks-machine-chip ${selectedMachine === m.id ? 'selected' : ''}`}
-                onClick={() => setSelectedMachine(m.id)}
+                onClick={() => setSelectedMachine(selectedMachine === m.id ? '' : m.id)}
               >
                 <span className="ks-machine-chip-tag">{m.asset_tag}</span>
                 <span className="ks-machine-chip-name">{m.name}</span>
