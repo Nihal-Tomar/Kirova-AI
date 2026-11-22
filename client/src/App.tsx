@@ -396,11 +396,8 @@ function VoiceRecorder({
             const res = await apiUpload('/api/stt/transcribe', formData, authToken);
             onTranscriptReady(res.transcript || '', res);
           } catch (err: any) {
-            console.warn('[STT] Falling back:', err.message);
-            onTranscriptReady(
-              'Machine 4 ka belt ajeeb noise kar raha hai aur kabhi-kabhi chalte waqt ruk jaata hai.',
-              { isMock: true, apiError: err.message }
-            );
+            console.error('[STT] Transcription error:', err.message);
+            setErrorMessage(`Transcription failed: ${err.message}. Please retry or type fault description below.`);
           } finally {
             setIsTranscribing(false);
           }

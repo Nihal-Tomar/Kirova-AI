@@ -89,14 +89,26 @@ export async function transcribeReport(req: Request, res: Response): Promise<voi
 
   const inc = incRes.rows[0];
   let transcript = inc.corrected_transcript || inc.original_transcript;
-  let isMock = true;
+  let isMock = false;
 
   if (inc.audio_file_path && fs.existsSync(inc.audio_file_path)) {
-    const sttRes = await transcribeAudio(inc.audio_file_path, requestedLanguage);
-    transcript = sttRes.transcript;
-    isMock = sttRes.isMock;
+    try {
+      const sttRes = await transcribeAudio(inc.audio_file_path, requestedLanguage);
+      transcript = sttRes.transcript;
+      isMock = sttRes.isMock;
+    } catch (err: any) {
+      res.status(502).json({
+        error: "TRANSCRIPTION_FAILED",
+        message: `Audio transcription failed: ${err.message}`
+      });
+      return;
+    }
   } else if (!transcript) {
-    transcript = "Machine 4 ka belt ajeeb noise kar raha hai aur kabhi-kabhi chalte waqt ruk jaata hai.";
+    res.status(400).json({
+      error: "NO_AUDIO_OR_TRANSCRIPT",
+      message: "No audio recording or transcript available for this report."
+    });
+    return;
   }
 
   await db.query(

@@ -5,16 +5,16 @@ import { config } from "../config/env";
 export interface TranscribeResult {
   transcript: string;
   languageCode: string;
-  confidence: number;
+  confidence?: number;
   isMock: boolean;
-  provider?: string;
-  apiError?: string;
+  provider: string;
+  requestId?: string;
 }
 
 /**
  * Maps incoming language names/codes to Sarvam AI Saaras v4 parameters
  */
-function resolveLanguageAndMode(inputLang?: string): { languageCode: string; mode: string } {
+export function resolveLanguageAndMode(inputLang?: string): { languageCode: string; mode: string } {
   const norm = (inputLang || "").toLowerCase().trim();
   if (norm.includes("hinglish") || norm.includes("codemix") || norm.includes("latn")) {
     return { languageCode: "hi-IN", mode: "codemix" };
@@ -57,8 +57,8 @@ function getMimeType(filePath: string): string {
 }
 
 /**
- * Transcribes audio file using Sarvam AI Saaras v4 model.
- * Falls back deterministically if API key is absent, unauthorized, or offline.
+ * Transcribes audio file using the official Sarvam AI Saaras v4 API.
+ * Throws on API failure — does NOT generate fake or simulated transcript text.
  */
 export async function transcribeAudio(
   audioFilePath: string,
@@ -78,72 +78,53 @@ export async function transcribeAudio(
     throw new Error("Audio file exceeds maximum allowed size of 25MB.");
   }
 
-  const { languageCode, mode } = resolveLanguageAndMode(reportedLanguage);
-
-  // 3. If Sarvam API key is configured, call official Sarvam AI STT API (Saaras v4)
-  if (config.sarvamApiKey) {
-    try {
-      const fileBuffer = fs.readFileSync(audioFilePath);
-      const mimeType = getMimeType(audioFilePath);
-      const ext = path.extname(audioFilePath) || ".wav";
-      const blob = new Blob([fileBuffer], { type: mimeType });
-
-      const formData = new FormData();
-      formData.append("file", blob, `audio-recording${ext}`);
-      formData.append("model", "saaras:v4");
-      formData.append("mode", mode);
-      if (languageCode) {
-        formData.append("language_code", languageCode);
-      }
-
-      const response = await fetch("https://api.sarvam.ai/speech-to-text", {
-        method: "POST",
-        headers: {
-          "api-subscription-key": config.sarvamApiKey
-        },
-        body: formData
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.warn(`⚠️ [STT] Sarvam AI API returned HTTP ${response.status}: ${errorText}`);
-        return {
-          transcript: "Machine 4 ka belt ajeeb noise kar raha hai aur kabhi-kabhi chalte waqt ruk jaata hai.",
-          languageCode: languageCode || "hi-IN",
-          confidence: 0.92,
-          isMock: true,
-          provider: "sarvam-saaras-v4-fallback",
-          apiError: `Sarvam API error (${response.status}): ${errorText.slice(0, 150)}`
-        };
-      }
-
-      const data = await response.json();
-      return {
-        transcript: data.transcript || "",
-        languageCode: (data.language_code || languageCode) as string,
-        confidence: 0.96,
-        isMock: false,
-        provider: "sarvam-saaras-v4"
-      };
-    } catch (err: any) {
-      console.warn(`⚠️ [STT] Sarvam AI network error: ${err.message}. Engaging resilient fallback.`);
-      return {
-        transcript: "Machine 4 ka belt ajeeb noise kar raha hai aur kabhi-kabhi chalte waqt ruk jaata hai.",
-        languageCode: languageCode || "hi-IN",
-        confidence: 0.90,
-        isMock: true,
-        provider: "sarvam-saaras-v4-fallback",
-        apiError: err.message
-      };
-    }
+  // 3. Verify Sarvam API key is configured
+  if (!config.sarvamApiKey) {
+    throw new Error("SARVAM_API_KEY is not configured in backend environment variables.");
   }
 
-  // 4. Resilient Local Mock Transcriber for offline demonstration / development without key
+  const { languageCode, mode } = resolveLanguageAndMode(reportedLanguage);
+
+  const fileBuffer = fs.readFileSync(audioFilePath);
+  const mimeType = getMimeType(audioFilePath);
+  const ext = path.extname(audioFilePath) || ".wav";
+  const blob = new Blob([fileBuffer], { type: mimeType });
+
+  const formData = new FormData();
+  formData.append("file", blob, `audio-recording${ext}`);
+  formData.append("model", "saaras:v4");
+  formData.append("mode", mode);
+  if (languageCode) {
+    formData.append("language_code", languageCode);
+  }
+
+  const response = await fetch("https://api.sarvam.ai/speech-to-text", {
+    method: "POST",
+    headers: {
+      "api-subscription-key": config.sarvamApiKey
+    },
+    body: formData
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`❌ [STT] Sarvam AI API returned HTTP ${response.status}: ${errorText}`);
+    let parsedMessage = errorText;
+    try {
+      const errJson = JSON.parse(errorText);
+      parsedMessage = errJson.error?.message || errJson.message || errorText;
+    } catch {}
+    throw new Error(`Sarvam STT failed (HTTP ${response.status}): ${parsedMessage}`);
+  }
+
+  const data = await response.json();
+
   return {
-    transcript: "Machine 4 ka belt ajeeb noise kar raha hai aur kabhi-kabhi chalte waqt ruk jaata hai.",
-    languageCode: languageCode || "hi-IN",
-    confidence: 0.92,
-    isMock: true,
-    provider: "local-mock"
+    transcript: data.transcript ?? "",
+    languageCode: data.language_code || languageCode || "hi-IN",
+    confidence: typeof data.confidence === "number" ? data.confidence : undefined,
+    isMock: false,
+    provider: "sarvam-saaras-v4",
+    requestId: data.request_id
   };
 }

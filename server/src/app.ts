@@ -128,7 +128,10 @@ export function createApp(): express.Application {
       res.json(result);
     } catch (err: any) {
       console.error("STT route error:", err);
-      res.status(500).json({ error: "TRANSCRIPTION_FAILED", message: err.message });
+      if (req.file?.path && fs.existsSync(req.file.path)) {
+        try { fs.unlinkSync(req.file.path); } catch {}
+      }
+      res.status(502).json({ error: "TRANSCRIPTION_FAILED", message: err.message });
     }
   });
 

@@ -3,6 +3,7 @@ import path from "path";
 
 // Load .env from workspace root or server directory
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 dotenv.config();
 
 export interface AppConfig {
@@ -79,9 +80,9 @@ function validateAndLoadConfig(): AppConfig {
   const isMockLlm = !openaiApiKey && !geminiApiKey;
 
   if (isMockStt) {
-    console.info("ℹ️  [STT SERVICE] SARVAM_API_KEY not provided. Running in explicit local development mock mode.");
+    console.info("ℹ️  [STT SERVICE] SARVAM_API_KEY not provided.");
   } else {
-    console.info("✅ [STT SERVICE] Sarvam AI STT configured.");
+    console.info("✅ [STT SERVICE] Sarvam AI STT configured and key verified non-empty.");
   }
 
   if (isMockLlm) {

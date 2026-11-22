@@ -210,10 +210,9 @@ export function VoiceRecorderModal({
       setTranscript(result.transcript || '');
       setTranscribeMeta(result);
     } catch (err: any) {
-      console.warn('Backend transcription error:', err);
-      // Fallback transcript
-      setTranscript('Machine 4 ka belt ajeeb noise kar raha hai aur kabhi-kabhi chalte waqt ruk jaata hai.');
-      setTranscribeMeta({ isMock: true, provider: 'fallback', apiError: err.message });
+      console.error('Backend transcription error:', err);
+      setErrorMessage(`Transcription failed: ${err.message || 'Could not connect to Sarvam AI'}. You can retry recording or enter your report text manually below.`);
+      setTranscribeMeta(null);
     } finally {
       setIsTranscribing(false);
     }

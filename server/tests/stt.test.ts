@@ -20,22 +20,28 @@ describe("Sarvam AI Speech-to-Text Test Suite", () => {
       .send({ email: "worker.amit@kirova.ai", password: "Worker@123" });
     workerToken = loginRes.body.token;
 
-    // Create a temporary dummy wav file
+    // Create a temporary valid 16kHz mono WAV file
     testAudioPath = path.resolve(__dirname, "test-sample.wav");
-    const buffer = Buffer.alloc(44);
+    const sampleRate = 16000;
+    const numSamples = sampleRate * 1;
+    const dataSize = numSamples * 2;
+    const buffer = Buffer.alloc(44 + dataSize);
     buffer.write("RIFF", 0);
-    buffer.writeUInt32LE(36, 4);
+    buffer.writeUInt32LE(36 + dataSize, 4);
     buffer.write("WAVE", 8);
     buffer.write("fmt ", 12);
     buffer.writeUInt32LE(16, 16);
     buffer.writeUInt16LE(1, 20);
     buffer.writeUInt16LE(1, 22);
-    buffer.writeUInt32LE(16000, 24);
-    buffer.writeUInt32LE(32000, 28);
+    buffer.writeUInt32LE(sampleRate, 24);
+    buffer.writeUInt32LE(sampleRate * 2, 28);
     buffer.writeUInt16LE(2, 32);
     buffer.writeUInt16LE(16, 34);
     buffer.write("data", 36);
-    buffer.writeUInt32LE(0, 40);
+    buffer.writeUInt32LE(dataSize, 40);
+    for (let i = 0; i < numSamples; i++) {
+      buffer.writeInt16LE(Math.round(Math.sin((2 * Math.PI * 440 * i) / sampleRate) * 8000), 44 + i * 2);
+    }
     fs.writeFileSync(testAudioPath, buffer);
   });
 
@@ -67,14 +73,14 @@ describe("Sarvam AI Speech-to-Text Test Suite", () => {
     expect(res.status).toBe(200);
     expect(res.body.transcript).toBeDefined();
     expect(res.body.languageCode).toBeDefined();
-    expect(typeof res.body.confidence).toBe("number");
+    expect(res.body.provider).toBe("sarvam-saaras-v4");
   });
 
   it("transcribes directly via service layer with language mode support", async () => {
     const result = await transcribeAudio(testAudioPath, "Hinglish");
     expect(result.transcript).toBeDefined();
     expect(result.languageCode).toBe("hi-IN");
-    expect(result.confidence).toBeGreaterThan(0.8);
+    expect(result.provider).toBe("sarvam-saaras-v4");
   });
 
   afterAll(() => {
