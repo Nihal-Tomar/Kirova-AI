@@ -43,7 +43,7 @@ describe("Sarvam AI Speech-to-Text Test Suite", () => {
       buffer.writeInt16LE(Math.round(Math.sin((2 * Math.PI * 440 * i) / sampleRate) * 8000), 44 + i * 2);
     }
     fs.writeFileSync(testAudioPath, buffer);
-  });
+  }, 40000);
 
   it("fails when no authentication token is provided to /api/stt/transcribe", async () => {
     const res = await request(app)
@@ -64,23 +64,63 @@ describe("Sarvam AI Speech-to-Text Test Suite", () => {
   });
 
   it("successfully transcribes audio via POST /api/stt/transcribe with Sarvam Saaras v4 support", async () => {
-    const res = await request(app)
-      .post("/api/stt/transcribe")
-      .set("Authorization", `Bearer ${workerToken}`)
-      .attach("audio", testAudioPath)
-      .field("language", "Hinglish");
+    const originalFetch = global.fetch;
+    global.fetch = async (url: any, opts: any) => {
+      if (typeof url === "string" && url.includes("sarvam.ai")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            transcript: "Machine 4 conveyor belt noise",
+            language_code: "hi-IN",
+            request_id: "req-test-sarvam-01"
+          })
+        } as any;
+      }
+      return originalFetch(url, opts);
+    };
 
-    expect(res.status).toBe(200);
-    expect(res.body.transcript).toBeDefined();
-    expect(res.body.languageCode).toBeDefined();
-    expect(res.body.provider).toBe("sarvam-saaras-v4");
+    try {
+      const res = await request(app)
+        .post("/api/stt/transcribe")
+        .set("Authorization", `Bearer ${workerToken}`)
+        .attach("audio", testAudioPath)
+        .field("language", "Hinglish");
+
+      expect(res.status).toBe(200);
+      expect(res.body.transcript).toBeDefined();
+      expect(res.body.languageCode).toBeDefined();
+      expect(res.body.provider).toBe("sarvam-saaras-v4");
+    } finally {
+      global.fetch = originalFetch;
+    }
   });
 
   it("transcribes directly via service layer with language mode support", async () => {
-    const result = await transcribeAudio(testAudioPath, "Hinglish");
-    expect(result.transcript).toBeDefined();
-    expect(result.languageCode).toBe("hi-IN");
-    expect(result.provider).toBe("sarvam-saaras-v4");
+    const originalFetch = global.fetch;
+    global.fetch = async (url: any, opts: any) => {
+      if (typeof url === "string" && url.includes("sarvam.ai")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            transcript: "Machine 4 conveyor belt noise",
+            language_code: "hi-IN",
+            request_id: "req-test-sarvam-02"
+          })
+        } as any;
+      }
+      return originalFetch(url, opts);
+    };
+
+    try {
+      const result = await transcribeAudio(testAudioPath, "Hinglish");
+      expect(result.transcript).toBeDefined();
+      expect(result.languageCode).toBe("hi-IN");
+      expect(result.provider).toBe("sarvam-saaras-v4");
+    } finally {
+      global.fetch = originalFetch;
+    }
   });
 
   afterAll(() => {

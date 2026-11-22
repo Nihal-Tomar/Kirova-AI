@@ -4,7 +4,7 @@ import { db } from "../db/index";
 export interface LogAuditParams {
   organizationId: string;
   actorId: string;
-  entityType: "INCIDENT" | "WORK_ORDER" | "TRANSCRIPT";
+  entityType: "INCIDENT" | "WORK_ORDER" | "TRANSCRIPT" | "TRIAGE_DECISION";
   entityId: string;
   action:
     | "CREATE"
@@ -17,7 +17,11 @@ export interface LogAuditParams {
     | "ASSIGN"
     | "STATUS_UPDATE"
     | "SUBMIT_RESOLUTION"
-    | "VERIFY_CLOSE";
+    | "VERIFY_CLOSE"
+    | "SUPERVISOR_TRIAGE_ASSIGN"
+    | "SUPERVISOR_TRIAGE_INTERNAL_RESOLUTION"
+    | "SUPERVISOR_TRIAGE_REQUEST_INFO"
+    | "SUPERVISOR_TRIAGE_ESCALATE";
   previousState?: any;
   newState?: any;
   reason?: string;

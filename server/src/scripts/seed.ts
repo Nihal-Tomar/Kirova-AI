@@ -9,12 +9,15 @@ export async function seedDatabase(): Promise<void> {
   // Temporarily bypass trigger for clean seed reset of audit_logs
   await db.executeScript("DROP TRIGGER IF EXISTS trg_audit_logs_immutable ON audit_logs;");
   await db.query("DELETE FROM audit_logs");
+  await db.query("DELETE FROM supervisor_triage_decisions");
+  await db.query("DELETE FROM incident_triage_assessments");
   await db.query("DELETE FROM work_order_status_history");
   await db.query("DELETE FROM work_orders");
   await db.query("DELETE FROM incident_evidence");
   await db.query("DELETE FROM incidents");
   await db.query("DELETE FROM components");
   await db.query("DELETE FROM machines");
+  await db.query("DELETE FROM technician_profiles");
   await db.query("DELETE FROM users");
   await db.query("DELETE FROM sites");
   await db.query("DELETE FROM organizations");
@@ -66,6 +69,29 @@ export async function seedDatabase(): Promise<void> {
       tech1Id, orgId, "Rajesh Kumar (Technician)", "tech.rajesh@kirova.ai", passwordTech, "REPORTER_TECHNICIAN",
       tech2Id, orgId, "Vikram Singh (Technician)", "tech.vikram@kirova.ai", passwordTech, "REPORTER_TECHNICIAN",
       workerId, orgId, "Amit Verma (Line Operator)", "worker.amit@kirova.ai", passwordWorker, "REPORTER_TECHNICIAN"
+    ]
+  );
+
+  // 3b. Technician Profiles & Specializations
+  await db.query(
+    `INSERT INTO technician_profiles (user_id, skills, specialization, years_experience, certifications, shift, is_available) VALUES
+     ($1, $2, $3, $4, $5, $6, $7),
+     ($8, $9, $10, $11, $12, $13, $14)`,
+    [
+      tech1Id,
+      JSON.stringify(["Mechanical Alignment", "Vibration Analysis", "Conveyor Drives", "Roller & Bearing Replacement", "Belt Tensioning"]),
+      "Mechanical & Drive Systems",
+      8,
+      JSON.stringify(["ISO 18436 Vibration Analyst Cat II", "Precision Shaft Alignment Certified"]),
+      "Morning Shift (Bay A & B)",
+      true,
+      tech2Id,
+      JSON.stringify(["Hydraulic Cylinder Overhaul", "Proportional Valve Calibration", "Pressure Relief Systems", "Pneumatics", "Fluid Leak Diagnostics"]),
+      "Hydraulics & High Pressure Systems",
+      6,
+      JSON.stringify(["Fluid Power Hydraulic Specialist (CFPHS)", "Industrial Safety & High Pressure Systems"]),
+      "General Shift (Stamping & Press Bay)",
+      true
     ]
   );
 
@@ -318,7 +344,7 @@ export async function seedDatabase(): Promise<void> {
   }
 
   // 7. Seed Active / Live Records:
-  // A. 2 Open Incidents awaiting initial triage / inspection
+  // A. Open Incidents awaiting initial triage / inspection
   const openIncidents = [
     {
       id: "live-inc-01",
@@ -327,7 +353,10 @@ export async function seedDatabase(): Promise<void> {
       symptom: "Hydraulic press cylinder slow descent and seal oil pooling under ram during shift. Audible hiss.",
       cat: "FLUID_LEAKAGE",
       priority: "CRITICAL",
-      rationale: "Safety critical failure: hydraulic leakage causes load drop risk and high pressure fluid hazard."
+      rationale: "Safety critical failure: hydraulic leakage causes load drop risk and high pressure fluid hazard.",
+      missing: "[]",
+      status: "AWAITING_REVIEW",
+      channel: "VOICE"
     },
     {
       id: "live-inc-02",
@@ -336,7 +365,34 @@ export async function seedDatabase(): Promise<void> {
       symptom: "Spindle high-frequency vibration during heavy roughing pass at 6000 RPM. Conflicting previous maintenance notes on drive belt vs spindle bearings.",
       cat: "ABNORMAL_NOISE",
       priority: "HIGH",
-      rationale: "Vibration threshold exceeded ISO Class 1 limit (2.6 mm/s vs 1.8 mm/s standard)."
+      rationale: "Vibration threshold exceeded ISO Class 1 limit (2.6 mm/s vs 1.8 mm/s standard).",
+      missing: "[]",
+      status: "AWAITING_REVIEW",
+      channel: "VOICE"
+    },
+    {
+      id: "live-inc-1799",
+      repNum: "INC-2026-1799",
+      mchId: null as string | null,
+      symptom: "machine 4 में आ रहा है अभी वो heat हो रही है",
+      cat: "OTHER",
+      priority: "MEDIUM",
+      rationale: "Ambiguous machine reference ('machine 4') and overheating symptom. Missing asset tag and machine identification.",
+      missing: JSON.stringify(["machine_id", "asset_tag"]),
+      status: "DRAFT",
+      channel: "VOICE"
+    },
+    {
+      id: "live-inc-1801",
+      repNum: "INC-2026-1801",
+      mchId: "mch-001",
+      symptom: "Loose inspection door latch thumbscrew on outer dust guard. No mechanical obstruction or motor noise.",
+      cat: "OTHER",
+      priority: "LOW",
+      rationale: "External sheet metal guard fastener loose; no drive, electrical, or structural safety hazard. Suitable for internal supervisor resolution.",
+      missing: "[]",
+      status: "AWAITING_REVIEW",
+      channel: "TEXT"
     }
   ];
 
@@ -344,12 +400,14 @@ export async function seedDatabase(): Promise<void> {
     await db.query(
       `INSERT INTO incidents (
         id, report_number, organization_id, reporter_id, site_id, machine_id,
-        input_channel, symptom_text, symptom_category, recurrence_claimed,
-        urgency_suggestion, urgency_rationale, missing_fields, status, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, 'VOICE', $7, $8, true, $9, $10, '[]', 'AWAITING_REVIEW', NOW() - INTERVAL '3 hours')`,
+        input_channel, original_transcript, corrected_transcript, symptom_text,
+        symptom_category, recurrence_claimed, urgency_suggestion, urgency_rationale,
+        missing_fields, status, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $8, $8, $9, false, $10, $11, $12, $13, NOW() - INTERVAL '3 hours')`,
       [
         oi.id, oi.repNum, orgId, workerId, site1, oi.mchId,
-        oi.symptom, oi.cat, oi.priority, oi.rationale
+        oi.channel, oi.symptom, oi.cat, oi.priority, oi.rationale,
+        oi.missing, oi.status
       ]
     );
 
@@ -357,11 +415,11 @@ export async function seedDatabase(): Promise<void> {
       `INSERT INTO incident_evidence (id, incident_id, field_name, label, raw_value, source_reference)
        VALUES 
        ($1, $2, 'symptom_text', 'REPORTED', $3, 'Voice note transcript via Sarvam ASR'),
-       ($4, $5, 'machine_id', 'RETRIEVED', $6, 'Asset tag acoustic match in Bay'),
-       ($7, $8, 'urgency_suggestion', 'SUGGESTED', $9, 'LLM Risk Evaluation Matrix')`,
+       ($4, $5, 'machine_id', $6, $7, $8),
+       ($9, $10, 'urgency_suggestion', 'SUGGESTED', $11, 'LLM Risk Evaluation Matrix')`,
       [
         `ev-${oi.id}-1`, oi.id, oi.symptom,
-        `ev-${oi.id}-2`, oi.id, oi.mchId,
+        `ev-${oi.id}-2`, oi.id, oi.mchId ? "RETRIEVED" : "UNVERIFIED", oi.mchId || "UNRESOLVED_ASSET", oi.mchId ? "Asset tag match in Bay" : "Missing machine reference in speech transcript",
         `ev-${oi.id}-3`, oi.id, oi.priority
       ]
     );

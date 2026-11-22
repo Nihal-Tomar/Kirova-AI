@@ -12,6 +12,7 @@ import * as reportsCtrl from "./controllers/reports";
 import * as workOrdersCtrl from "./controllers/work_orders";
 import * as intelCtrl from "./controllers/intelligence";
 import * as evalCtrl from "./controllers/evaluation";
+import * as triageCtrl from "./controllers/triage";
 import { transcribeAudio } from "./services/stt";
 
 export function createApp(): express.Application {
@@ -109,6 +110,12 @@ export function createApp(): express.Application {
   app.post("/api/reports/:id/clarify", requireAuth, reportsCtrl.clarifyReport);
   app.get("/api/reports/:id", requireAuth, reportsCtrl.getReportById);
   app.get("/api/reports", requireAuth, reportsCtrl.getReports);
+
+  // --- AI Triage Advisor & Intelligent Technician Assignment ---
+  app.get("/api/incidents/:id/triage-advisor", requireAuth, triageCtrl.getTriageAssessment);
+  app.get("/api/incidents/:id/technician-candidates", requireAuth, requireRole(["SUPERVISOR"]), triageCtrl.getTechnicianCandidates);
+  app.post("/api/incidents/:id/triage-decision", requireAuth, requireRole(["SUPERVISOR"]), triageCtrl.submitTriageDecision);
+  app.get("/api/incidents/:id/triage-decision", requireAuth, triageCtrl.getTriageDecision);
 
   // --- Reusable Generic Speech-to-Text Transcription Route ---
   app.post(

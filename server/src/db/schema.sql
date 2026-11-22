@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS incidents (
     clarification_question TEXT,
     status TEXT NOT NULL CHECK (status IN (
         'DRAFT', 'AWAITING_CLARIFICATION', 'AWAITING_REVIEW',
-        'REJECTED', 'CONVERTED_TO_WORK_ORDER'
+        'REJECTED', 'CONVERTED_TO_WORK_ORDER', 'HANDLED_INTERNALLY', 'ESCALATED'
     )),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -169,3 +169,54 @@ DROP TRIGGER IF EXISTS trg_audit_logs_immutable ON audit_logs;
 CREATE TRIGGER trg_audit_logs_immutable
 BEFORE UPDATE OR DELETE ON audit_logs
 FOR EACH ROW EXECUTE FUNCTION prevent_audit_log_tampering();
+
+-- 11. Technician Profiles & Specializations
+CREATE TABLE IF NOT EXISTS technician_profiles (
+    user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    skills TEXT NOT NULL, -- JSON string array
+    specialization TEXT NOT NULL,
+    years_experience INTEGER DEFAULT 5,
+    certifications TEXT, -- JSON string array
+    shift TEXT DEFAULT 'Day Shift',
+    is_available BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 12. Incident Triage Assessments (AI Advisor Evaluation)
+CREATE TABLE IF NOT EXISTS incident_triage_assessments (
+    id TEXT PRIMARY KEY,
+    incident_id TEXT NOT NULL REFERENCES incidents(id) ON DELETE CASCADE,
+    recommended_action TEXT NOT NULL CHECK (recommended_action IN (
+        'SUPERVISOR_CAN_HANDLE', 'ASSIGN_TECHNICIAN', 'REQUEST_MORE_INFORMATION', 'ESCALATE'
+    )),
+    complexity TEXT NOT NULL CHECK (complexity IN ('LOW', 'MEDIUM', 'HIGH')),
+    safety_risk TEXT NOT NULL CHECK (safety_risk IN ('NONE', 'LOW', 'MODERATE', 'CRITICAL')),
+    confidence TEXT NOT NULL CHECK (confidence IN ('HIGH', 'MODERATE', 'LOW')),
+    required_skills TEXT, -- JSON string array
+    summary_explanation TEXT NOT NULL,
+    supporting_evidence TEXT, -- JSON string array
+    historical_incident_ids TEXT, -- JSON string array
+    missing_information TEXT, -- JSON string array
+    safety_precautions TEXT, -- JSON string array
+    model_provider TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 13. Supervisor Triage Decisions
+CREATE TABLE IF NOT EXISTS supervisor_triage_decisions (
+    id TEXT PRIMARY KEY,
+    incident_id TEXT NOT NULL REFERENCES incidents(id) ON DELETE CASCADE,
+    supervisor_id TEXT NOT NULL REFERENCES users(id),
+    decision TEXT NOT NULL CHECK (decision IN (
+        'ASSIGN_TECHNICIAN', 'HANDLE_INTERNALLY', 'REQUEST_INFORMATION', 'ESCALATE'
+    )),
+    assigned_technician_id TEXT REFERENCES users(id),
+    assignment_notes TEXT,
+    internal_resolution_notes TEXT,
+    information_request_notes TEXT,
+    escalation_reason TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_triage_assessments_incident ON incident_triage_assessments(incident_id);
+CREATE INDEX IF NOT EXISTS idx_triage_decisions_incident ON supervisor_triage_decisions(incident_id);

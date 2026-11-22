@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import './styles/landing.css';
 import './styles/kirova-redesign.css';
+import { SupervisorTriageWorkspace } from './components/SupervisorTriageWorkspace';
 
 // ── API Configuration ─────────────────────────────────────────
 const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
@@ -194,6 +195,8 @@ function formatEnumLabel(val: string): string {
     DRAFT: 'Draft Report',
     REJECTED: 'Rejected',
     RETURNED_FOR_REWORK: 'Returned for Rework',
+    HANDLED_INTERNALLY: 'Handled Internally',
+    ESCALATED: 'Escalated to Safety',
   };
   if (special[val]) return special[val];
   return val.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -213,6 +216,8 @@ function getStatusBadgeClass(status: string): string {
     RESOLVED: 'badge-resolved',
     VERIFIED_CLOSED: 'badge-closed',
     RETURNED_FOR_REWORK: 'badge-clarification',
+    HANDLED_INTERNALLY: 'badge-resolved',
+    ESCALATED: 'badge-rejected',
   };
   return map[status] || 'badge-draft';
 }
@@ -2572,7 +2577,7 @@ function SupervisorIncidentsView() {
   const { addToast } = useToast();
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<any>(null);
+  const [triageIncidentId, setTriageIncidentId] = useState<string | null>(null);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -2585,54 +2590,20 @@ function SupervisorIncidentsView() {
 
   if (loading) return <div className="loading-overlay"><Spinner /><span>Loading incident queue…</span></div>;
 
-  const convertToWO = async (reportId: string) => {
-    try {
-      await apiRequest('/api/work-orders', {
-        method: 'POST',
-        body: JSON.stringify({ incidentId: reportId, priority: 'HIGH' })
-      }, auth.token!);
-      addToast({ type: 'success', title: 'Work order created from incident!' });
-      setSelected(null);
-      load();
-    } catch (e: any) {
-      addToast({ type: 'error', title: e.message });
-    }
-  };
+  if (triageIncidentId) {
+    return (
+      <SupervisorTriageWorkspace
+        incidentId={triageIncidentId}
+        onBack={() => { setTriageIncidentId(null); load(); }}
+        onDecisionSuccess={() => { setTriageIncidentId(null); load(); }}
+        token={auth.token!}
+        addToast={addToast}
+      />
+    );
+  }
 
   return (
     <div>
-      <Modal open={!!selected} onClose={() => setSelected(null)} title={`Incident: ${selected?.report_number}`} size="modal-lg">
-        {selected && (
-          <div>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-              <span className={`badge ${getStatusBadgeClass(selected.status)}`}>{formatStatus(selected.status)}</span>
-              <span className={`badge priority-badge ${getPriorityClass(selected.urgency_suggestion)}`}>{selected.urgency_suggestion}</span>
-            </div>
-            <div className="info-grid mb-5">
-              {[
-                ['Machine', selected.machine_name || '—'],
-                ['Asset Tag', selected.asset_tag || '—'],
-                ['Reporter', selected.reporter_name || 'Line Operator'],
-                ['Category', formatEnumLabel(selected.symptom_category)],
-              ].map(([l, v]) => (
-                <div key={l} className="info-item"><span className="info-label">{l}</span><span className="info-value">{v}</span></div>
-              ))}
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <label className="form-label">Symptom Description</label>
-              <div style={{ background: '#F8FAFC', padding: 12, borderRadius: 8, fontSize: 13, color: '#0F172A' }}>
-                {selected.symptom_text}
-              </div>
-            </div>
-            {selected.status === 'AWAITING_REVIEW' && (
-              <button className="btn btn-primary" onClick={() => convertToWO(selected.id)}>
-                Convert to Work Order →
-              </button>
-            )}
-          </div>
-        )}
-      </Modal>
-
       <div className="card">
         <div className="card-header">
           <div>
@@ -2659,13 +2630,15 @@ function SupervisorIncidentsView() {
               {reports.map(r => (
                 <tr key={r.id}>
                   <td><IdPill id={r.report_number} /></td>
-                  <td>{r.machine_name || '—'}</td>
+                  <td>{r.machine_name || (r.missing_fields?.includes('machine_id') ? <span style={{ color: '#DC2626', fontWeight: 600, fontSize: 11 }}>⚠️ Missing Asset</span> : '—')}</td>
                   <td><span className="truncate" style={{ maxWidth: 200, display: 'block' }}>{r.symptom_text}</span></td>
                   <td><span className={`badge priority-badge ${getPriorityClass(r.urgency_suggestion)}`}>{r.urgency_suggestion}</span></td>
                   <td><span className={`badge ${getStatusBadgeClass(r.status)}`}>{formatStatus(r.status)}</span></td>
                   <td className="text-xs text-muted">{formatDate(r.created_at)}</td>
                   <td>
-                    <button className="btn btn-secondary btn-sm" onClick={() => setSelected(r)}>Triage</button>
+                    <button className="btn btn-primary btn-sm" onClick={() => setTriageIncidentId(r.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <Sparkles size={12} /> Triage Advisor →
+                    </button>
                   </td>
                 </tr>
               ))}
